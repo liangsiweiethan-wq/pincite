@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    runs-on: macos-15
+    timeout-minutes: 40
+    env:
+      # GitHub runners are slower than a local Mac; widen timing gates.
+      LIT_PERF_RELAXED: "1"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Toolchain
+        run: swift --version
+
+      - name: Privacy gate
+        run: python3 -I Scripts/privacy-gate.py
+
+      - name: Privacy gate self-test
+        run: python3 -I Scripts/privacy-gate.py --self-test
+
+      - name: Generated project is clean
+        run: |
+          swift Scripts/generate-project.swift
+          git diff --exit-code -- app/
+          test -z "$(git ls-files --others --exclude-standard -- app/)"
+
+      - name: Build
+        run: swift build
+
+      - name: Test
+        run: swift test
+
+      - name: L10n drift check
+        run: Scripts/l10n-drift-check.sh
+
+      - name: Build macOS app
+        run: >
+          xcodebuild -project app/LiteratureSearch.xcodeproj -scheme LiteratureSearch
+          -configuration Release -destination 'generic/platform=macOS'
+          -derivedDataPath "$RUNNER_TEMP/literature-macos"
+          CODE_SIGNING_ALLOWED=NO build

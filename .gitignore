@@ -1,0 +1,34 @@
+# SwiftPM / Xcode
+.build/
+.swiftpm/
+DerivedData/
+*.xcuserstate
+xcuserdata/
+app/build/
+
+# macOS
+.DS_Store
+
+# Local data, indexes, logs, exports
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.log
+.state/
+library/
+exports/
+
+# Secrets and signing material
+.env
+.secrets/
+*.key
+*.pem
+*.p12
+*.cer
+*.mobileprovision
+
+# Quick-start sample output
+/sample-library/
+# Private privacy-gate denylist (never commit)
+/.privacy-denylist.json

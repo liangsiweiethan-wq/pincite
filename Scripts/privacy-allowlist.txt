@@ -1,0 +1,48 @@
+# path<TAB>rule<TAB>value<TAB>reason
+Sources/LiteratureCore/CitationPattern.swift	English name form	Author, Title	Generic citation placeholder, not a person
+Sources/LiteratureCore/WebDAVIndexManifest.swift	high-entropy string	abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789	Entropy detector fixture alphabet
+Sources/LiteratureSearchUI/CitationFormatter.swift	publisher name	清早了会让出版社	Natural-language parser example, not a publisher
+Sources/LiteratureSearchUI/CitationFormatter.swift	publisher name	否则出版社	Natural-language parser example, not a publisher
+Sources/LiteratureSearchUI/CitationFormatter.swift	publisher name	且不含出版社	Natural-language parser example, not a publisher
+Sources/LiteratureSearchUI/CitationFormatter.swift	publisher name	书名的普通尾括号多为出版社	Natural-language parser example, not a publisher
+Sources/LiteratureSearchUI/CitationFormatter.swift	publisher name	其后只跟出版社	Natural-language parser example, not a publisher
+Sources/LiteratureSearchUI/CitationFormatter.swift	publisher name	作者	Generic citation label, not a person
+Sources/LiteratureSearchUI/CitationFormatter.swift	Chinese name form	作者	Generic citation label, not a person
+Sources/LiteratureSearchUI/CitationFormatter.swift	publisher/journal name	Example House	Fictional parser fixture
+Sources/LiteratureSearchUI/AIProfilesStore.swift	domain	com.example.literaturesearch.ai	Documented example Keychain service identifier
+Tests/LiteratureCoreTests/BurnExportFrontMatterDailyTests.swift	publisher name	某某出版社	Explicit fictional publisher placeholder
+Tests/LiteratureCoreTests/CitationFormatTests.swift	English name form	Treatise, Example Press	Fictional citation fixture
+Tests/LiteratureCoreTests/CitationFormatTests.swift	publisher/journal name	Quill. A Sample Treatise. Example Press	Fictional citation fixture
+Tests/LiteratureCoreTests/CitationFormatTests.swift	publisher/journal name	A Sample Treatise. Example Press	Fictional citation fixture
+Tests/LiteratureCoreTests/CitationFormatTests.swift	publisher name	有年份无出版社	Generic citation fixture
+Tests/LiteratureCoreTests/ContentCategoryTests.swift	English name form	Treatise, Example Press	Fictional citation fixture
+Tests/LiteratureCoreTests/ContentCategoryTests.swift	English name form	Marlowe, Notes	Fictional citation fixture
+Tests/LiteratureCoreTests/ContentCategoryTests.swift	publisher/journal name	Subjects, Sample House	Fictional citation fixture
+Tests/LiteratureCoreTests/ContentCategoryTests.swift	English name form	Subjects, Sample House	Fictional citation fixture
+Tests/LiteratureCoreTests/HitRouterTests.swift	English name form	Treatise, Example Press	Fictional citation fixture
+Tests/LiteratureCoreTests/QuoteCopyTests.swift	English name form	Quill, Jordan Marlowe	Fictional citation fixture
+Tests/LiteratureCoreTests/QuoteCopyTests.swift	Chinese name form	李维	Fictional Chinese name fixture
+Tests/LiteratureCoreTests/QuoteCopyTests.swift	publisher/journal name	Example Press House	Fictional citation fixture
+Tests/LiteratureCoreTests/QuoteCopyTests.swift	English name form	Author, Sample Translation	Fictional citation fixture
+Tests/LiteratureCoreTests/QuoteCopyTests.swift	English name form	Notes, Example Press	Fictional citation fixture
+Tests/LiteratureCoreTests/QuoteCopyTests.swift	publisher/journal name	Example House	Fictional citation fixture
+Tests/LiteratureCoreTests/QuoteCopyTests.swift	publisher/journal name	Example Journal	Fictional citation fixture
+Tests/LiteratureCoreTests/QuoteCopyTests.swift	English name form	Subjects, Example Press	Fictional citation fixture
+Tests/LiteratureCoreTests/RegressionTests.swift	English name form	Quoted, Title	Generic citation placeholder
+Tests/LiteratureCoreTests/CitationPurityTests.swift	Chinese name form	作者	Generic citation label
+Tests/LiteratureCoreTests/CitationPurityTests.swift	Chinese name form	甲乙著	Fictional Chinese author placeholder
+Tests/LiteratureCoreTests/CitationPurityTests.swift	English name form	Treatise, Example Press	Fictional citation fixture
+Tests/LiteratureCoreTests/ReadingStatsTests.swift	non-fictional book/journal title	a.pdf	Generic temporary PDF fixture
+Tests/LiteratureCoreTests/FileNameNormalizationTests.swift	domain	another.org	Fictional domain fixture
+Sources/LiteratureSearchUI/AIProfilesStore.swift	domain	com.example.literaturesearch.ai	Documented example Keychain service identifier
+Tests/LiteratureCoreTests/AITests.swift	domain	api.example.test	Fictional service endpoint
+Tests/LiteratureCoreTests/RegressionTests.swift	domain	api.example.test	Fictional service endpoint
+Tests/LiteratureCoreTests/SyncWatchTests.swift	secret	sk-synthetic-key-do-not-export-4242	Template placeholder, not a credential
+Scripts/privacy-gate.py	domain	(?:com|org|net|io|dev|ai|edu|gov|co|uk|de|fr|cn|sk|test|example|invalid)	Domain suffix matcher source code
+Tests/LiteratureCoreTests/Fixtures/FictionalCorpus.swift	64-character hexadecimal string	0000000000000000000000000000000000000000000000000000000000000001	Synthetic fixture digest
+Tests/LiteratureCoreTests/Fixtures/FictionalCorpus.swift	64-character hexadecimal string	0000000000000000000000000000000000000000000000000000000000000002	Synthetic fixture digest
+Tests/LiteratureCoreTests/Fixtures/FictionalCorpus.swift	64-character hexadecimal string	deadbeef00000000000000000000000000000000000000000000000000000001	Synthetic fixture digest
+Tests/LiteratureCoreTests/Fixtures/FictionalCorpus.swift	64-character hexadecimal string	0000000000000000000000000000000000000000000000000000000000000003	Synthetic fixture digest
+Tests/LiteratureCoreTests/Fixtures/FictionalCorpus.swift	64-character hexadecimal string	deadbeef00000000000000000000000000000000000000000000000000000002	Synthetic fixture digest
+README.md	domain	https://github.com	Public project release page
+README.zh-CN.md	domain	https://github.com	Public project release page
