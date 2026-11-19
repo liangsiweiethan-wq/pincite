@@ -236,8 +236,8 @@ enum OCRIndexingSuite {
         try FileManager.default.createDirectory(at: ocrRoot, withIntermediateDirectories: true)
 
         let scanURL = Fixtures.makePDF(pages: [textlessPage(), textlessPage()], in: origRoot, named: "s-scan.pdf")
-        let ocrURL = Fixtures.makePDF(pages: [SyntheticPDFPage(lines: ["甲编序跋文字"]), SyntheticPDFPage(lines: ["乙编图录说明"])],
-                                      in: ocrRoot, named: "s-ocr.pdf")
+        Fixtures.makePDF(pages: [SyntheticPDFPage(lines: ["甲编序跋文字"]), SyntheticPDFPage(lines: ["乙编图录说明"])],
+                         in: ocrRoot, named: "s-ocr.pdf")
 
         let policy = ExclusionPolicy()
         let store = try Fixtures.openStore(in: dir)

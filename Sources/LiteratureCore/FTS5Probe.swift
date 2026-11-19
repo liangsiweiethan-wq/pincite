@@ -47,8 +47,11 @@ public enum FTS5Probe {
         )
     }
 
+    private static let cachedCapabilities: FTS5Capabilities = (try? probe())
+        ?? FTS5Capabilities(sqliteVersion: "unavailable", fts5: false, trigramTokenizer: false, unicode61Tokenizer: false)
+
     public static func probeOrDefault() -> FTS5Capabilities {
-        (try? probe()) ?? FTS5Capabilities(sqliteVersion: "unavailable", fts5: false, trigramTokenizer: false, unicode61Tokenizer: false)
+        cachedCapabilities
     }
 
     private static func tryExec(_ db: OpaquePointer?, _ sql: String) -> Bool {

@@ -592,8 +592,7 @@ enum WebDAVIndexUploadSuite {
                 let dir = Fixtures.makeTempDir("snap-unique")
                 defer { Fixtures.cleanup(dir) }
                 let dbPath = dir.appendingPathComponent("index.db")
-                var store: IndexStore? = try makeStoreWithBooks(in: dir)
-                store = nil   // 关闭唯一写连接（clean close：wal 合并删除）
+                do { _ = try makeStoreWithBooks(in: dir) }   // 关闭唯一写连接（clean close：wal 合并删除）
                 let before = try sha256File(dbPath)
                 let walBefore = FileManager.default.fileExists(atPath: dbPath.path + "-wal")
                 let snapshot = try WebDAVIndexUploader.buildSnapshot(
@@ -645,12 +644,14 @@ enum WebDAVIndexUploadSuite {
                 let residue = Fixtures.makeTempDir("crash-residue")
                 defer { Fixtures.cleanup(residue) }
                 let dbPath = residue.appendingPathComponent("index.db")
-                var store: IndexStore? = try makeStoreWithBooks(in: srcDir)
-                let srcDB = srcDir.appendingPathComponent("index.db")
-                try FileManager.default.copyItem(atPath: srcDB.path, toPath: dbPath.path)
-                try FileManager.default.copyItem(atPath: srcDB.path + "-wal",
-                                                 toPath: dbPath.path + "-wal")
-                store = nil   // 弃原店；其 clean close 不影响复制出的残留
+                do {
+                    let store = try makeStoreWithBooks(in: srcDir)
+                    let srcDB = srcDir.appendingPathComponent("index.db")
+                    try FileManager.default.copyItem(atPath: srcDB.path, toPath: dbPath.path)
+                    try FileManager.default.copyItem(atPath: srcDB.path + "-wal",
+                                                     toPath: dbPath.path + "-wal")
+                    _ = store
+                }   // 弃原店；其 clean close 不影响复制出的残留
                 try expectTrue(FileManager.default.fileExists(atPath: dbPath.path + "-wal"),
                                "预置条件：残留 wal 在场")
                 let mainBefore = try sha256File(dbPath)

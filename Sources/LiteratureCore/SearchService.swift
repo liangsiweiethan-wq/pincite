@@ -1663,8 +1663,7 @@ extension IndexStore.PageRow {
     }
 }
 
-// MARK: - SearchService 语法分支（同文件置于 SearchService.swift 以访问其
-// private 存储；只在查询串含语法字符时被调用——现行路径一个字节不变）
+// MARK: - SearchService 语法分支（置于同文件以访问 private 存储；仅在查询串含语法字符时调用）
 
 extension SearchService {
     struct SyntaxQueryPlan {

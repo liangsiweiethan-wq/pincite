@@ -58,7 +58,7 @@ public final class SimilarBooksEngine: @unchecked Sendable {
         // 未建倒排表：降级空数组（不报错——单测基准）。
         guard try store.bigramIndexIsReady() else { return [] }
         let allBooks = try store.allBooks()
-        guard let target = allBooks.first(where: { $0.id == bookID }) else { return [] }
+        guard allBooks.contains(where: { $0.id == bookID }) else { return [] }
         let totalBooks = allBooks.count
         guard totalBooks >= 2 else { return [] }
         // 只推荐「可检索」的书——error 行与策略排除书不进候选

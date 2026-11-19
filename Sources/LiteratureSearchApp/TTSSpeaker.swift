@@ -9,13 +9,16 @@ final class TTSSpeaker: NSObject, ObservableObject {
     @Published private(set) var speaking = false
 
     private let synthesizer = AVSpeechSynthesizer()
+    private var speechDelegate: SpeechDelegate?
     private var terminateObserver: NSObjectProtocol?
 
     override init() {
         super.init()
-        synthesizer.delegate = SpeechDelegate { [weak self] in
+        let delegate = SpeechDelegate { [weak self] in
             Task { @MainActor in self?.speaking = false }
         }
+        self.speechDelegate = delegate
+        synthesizer.delegate = delegate
         terminateObserver = NotificationCenter.default.addObserver(
             forName: NSApplication.willTerminateNotification, object: nil, queue: .main) { [weak self] _ in
                 self?.stop()

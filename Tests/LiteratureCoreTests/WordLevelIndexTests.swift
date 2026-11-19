@@ -250,7 +250,7 @@ enum WordLevelIndexSuite {
                 INSERT INTO pages(book_id, page_number, text_original, text_norm, norm_starts, norm_ends, text_latin)
                 VALUES(?,?,?,?,?,?,?);
                 """)
-                try bareIns.reset(); try bareIns.clearBindings()
+                bareIns.reset(); bareIns.clearBindings()
                 try bareIns.bindText(1, "wo")
                 try bareIns.bindInt(2, 4)
                 try bareIns.bindText(3, bareText)
@@ -262,7 +262,7 @@ enum WordLevelIndexSuite {
                 let bareRowids = try store.wordPathCandidateRowIDs(match: quoteForFTS("democracy"))
                 let barePageRowid: Int64 = {
                     let stmt = try! store.db.prepare("SELECT rowid FROM pages WHERE book_id='wo' AND page_number=4;")
-                    try! stmt.step()
+                    _ = try! stmt.step()
                     return stmt.int(0)
                 }()
                 try expectTrue(bareRowids.contains(barePageRowid),

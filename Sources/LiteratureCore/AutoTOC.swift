@@ -229,7 +229,7 @@ extension IndexStore {
             try del.run()
             let ins = try db.prepare("INSERT OR REPLACE INTO auto_toc(book_id, page, label, level) VALUES(?,?,?,?);")
             for e in entries {
-                try ins.reset(); try ins.clearBindings()
+                ins.reset(); ins.clearBindings()
                 try ins.bindText(1, bookID)
                 try ins.bindInt(2, Int64(e.page))
                 try ins.bindText(3, e.label)
@@ -237,7 +237,7 @@ extension IndexStore {
                 try ins.run()
             }
             let up = try db.prepare("INSERT OR REPLACE INTO auto_toc_state(book_id, page_count) VALUES(?,?);")
-            try up.reset(); try up.clearBindings()
+            up.reset(); up.clearBindings()
             try up.bindText(1, bookID)
             try up.bindInt(2, Int64(pageCount))
             try up.run()

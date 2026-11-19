@@ -210,7 +210,7 @@ extension AnnotationCrypto {
             }
             let update = try db.prepare("UPDATE user_highlights SET note = ? WHERE rowid = ?;")
             for row in pending {
-                try update.reset()
+                update.reset()
                 try update.bindBlob(1, try encrypt(row.plain, key: key))
                 try update.bindInt(2, row.rowid)
                 try update.run()

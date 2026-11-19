@@ -10,6 +10,7 @@ enum Fixtures {
         return dir
     }
 
+    @discardableResult
     static func makePDF(pages: [SyntheticPDFPage], in dir: URL, named name: String) -> URL {
         let url = dir.appendingPathComponent(name)
         do {
@@ -20,12 +21,14 @@ enum Fixtures {
         return url
     }
 
+    @discardableResult
     static func makeRawFile(_ bytes: Data, in dir: URL, named name: String) -> URL {
         let url = dir.appendingPathComponent(name)
         try! bytes.write(to: url)
         return url
     }
 
+    @discardableResult
     static func makeSymlink(to target: URL, in dir: URL, named name: String) -> URL {
         let link = dir.appendingPathComponent(name)
         try! FileManager.default.createSymbolicLink(at: link, withDestinationURL: target)

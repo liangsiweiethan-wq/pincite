@@ -60,7 +60,7 @@ enum PageStatsIndexTests {
     }
 
     private static func indexExists(_ store: IndexStore) throws -> Bool {
-        try store.hasSqliteObjectLocked(type: "index", name: IndexStore.pageStatsIndexName)
+        store.hasSqliteObjectLocked(type: "index", name: IndexStore.pageStatsIndexName)
     }
 
     private static func drainAndPoll<T>(_ probe: () -> T,

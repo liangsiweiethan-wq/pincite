@@ -134,16 +134,16 @@ enum ClassificationRulesSuite {
                 try expectEqual(seen, ["b1": "数学"])
                 // 同书重跑：仍一行，classified_at 更新（幂等 upsert）
                 let before = try store.db.prepare("SELECT classified_at FROM book_classifications WHERE book_id='b1';")
-                try before.step()
+                _ = try before.step()
                 let t1 = before.double(0)
-                Thread.sleep(forTimeInterval: 0.02)
+                try await Task.sleep(nanoseconds: 20_000_000)
                 let r2 = try rulesStore.classifyAll()
                 try expectEqual(r2.classified, 1)
                 rows = try store.db.prepare("SELECT count(*) FROM book_classifications;")
-                try rows.step()
+                _ = try rows.step()
                 try expectEqual(rows.int(0), Int64(1))
                 let after = try store.db.prepare("SELECT classified_at FROM book_classifications WHERE book_id='b1';")
-                try after.step()
+                _ = try after.step()
                 try expectTrue(after.double(0) >= t1)
                 // 规则删除后重跑：旧分类行清除（书回未归类桶）
                 try rulesStore.deleteRule(ids: [1])
@@ -151,7 +151,7 @@ enum ClassificationRulesSuite {
                 try expectEqual(r3.classified, 0)
                 try expectEqual(r3.unclassified, 2)
                 rows = try store.db.prepare("SELECT count(*) FROM book_classifications;")
-                try rows.step()
+                _ = try rows.step()
                 try expectEqual(rows.int(0), Int64(0))
                 try expectEqual(try rulesStore.unclassifiedCount(), 2)
             },
@@ -199,15 +199,15 @@ enum ClassificationRulesSuite {
                 // 规则本就不该有分类行）、pages 落地、无半态
                 let classified = try store.db.prepare(
                     "SELECT count(*) FROM book_classifications;")
-                try classified.step()
+                _ = try classified.step()
                 try expectEqual(classified.int(0), Int64(120))
                 let pages = try store.db.prepare(
                     "SELECT count(*) FROM pages WHERE book_id='b-target' AND text_norm='new page';")
-                try pages.step()
+                _ = try pages.step()
                 try expectEqual(pages.int(0), Int64(1))
                 let ruleCount = try store.db.prepare(
                     "SELECT count(*) FROM classification_rules;")
-                try ruleCount.step()
+                _ = try ruleCount.step()
                 try expectEqual(ruleCount.int(0), Int64(1))
             },
 
@@ -227,14 +227,14 @@ enum ClassificationRulesSuite {
                 try store.deleteBook(id: "b-gone")
                 let orphanCount = try store.db.prepare(
                     "SELECT count(*) FROM book_classifications WHERE book_id='b-gone';")
-                try orphanCount.step()
+                _ = try orphanCount.step()
                 try expectEqual(orphanCount.int(0), Int64(1), "前置：孤儿行在位")
                 // 重跑：孤儿行回收；计数按 books 差集直算不失真
                 let second = try rulesStore.classifyAll()
                 try expectEqual(second.classified, 1)
                 let after = try store.db.prepare(
                     "SELECT count(*) FROM book_classifications WHERE book_id='b-gone';")
-                try after.step()
+                _ = try after.step()
                 try expectEqual(after.int(0), Int64(0), "孤儿行已被重跑回收")
                 try expectEqual(try rulesStore.unclassifiedCount(), 0)
                 // 全删规则后重跑：分类清零、未归类 = 在库书数（差集语义）
@@ -259,7 +259,7 @@ enum ClassificationRulesSuite {
                 try expectEqual(report.perBook?.count, 1)
                 try expectEqual(report.perBook?.first?.category, "数学")
                 let rows = try store.db.prepare("SELECT count(*) FROM book_classifications;")
-                try rows.step()
+                _ = try rows.step()
                 try expectEqual(rows.int(0), Int64(0))
             },
 
@@ -278,7 +278,7 @@ enum ClassificationRulesSuite {
                 try expectEqual(report.invalidSkipped, 1)
                 try expectEqual(report.classified, 1)
                 let rows = try store.db.prepare("SELECT category FROM book_classifications;")
-                try rows.step()
+                _ = try rows.step()
                 try expectEqual(rows.text(0), "数学")
             },
 
@@ -338,7 +338,7 @@ enum ClassificationRulesSuite {
                 while try tables.step() { names.append(tables.text(0)) }
                 try expectEqual(names, ["book_classifications", "classification_rules"])
                 let ver = try reopened.db.prepare("SELECT value FROM meta WHERE key='index_schema_version';")
-                try ver.step()
+                _ = try ver.step()
                 try expectEqual(ver.text(0), String(IndexStore.currentSchemaVersion))
                 let favs = try FavoritesStore(indexStore: reopened).all()
                 try expectEqual(favs.count, 1)

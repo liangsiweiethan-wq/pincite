@@ -88,7 +88,7 @@ public enum QuoteTextNormalizer {
             out.append(scalar)
             index += 1
         }
-        var result = String(out).trimmingCharacters(in: .whitespacesAndNewlines)
+        let result = String(out).trimmingCharacters(in: .whitespacesAndNewlines)
         // 左边界已向左拓宽到词首时，选区里不会残留左空白；未拓宽（CJK/标点/
         // 词界）时两端空白都去掉——不删改任何文字，只去选区外缘的空白。
         _ = hasWordBoundaryLeft

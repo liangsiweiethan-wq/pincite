@@ -254,7 +254,7 @@ extension IndexStore {
         let now = Date().timeIntervalSince1970
         for url in urls {
             let path = url.resolvingSymlinksInPath().standardizedFileURL.path
-            try stmt.reset(); try stmt.clearBindings()
+            stmt.reset(); stmt.clearBindings()
             try stmt.bindText(1, path)
             try stmt.bindDouble(2, now)
             try stmt.run()
@@ -286,7 +286,7 @@ extension IndexStore {
         guard !isReadOnlyReplica else { return }
         let stmt = try db.prepare("DELETE FROM index_pending WHERE path = ?;")
         for p in paths {
-            try stmt.reset(); try stmt.clearBindings()
+            stmt.reset(); stmt.clearBindings()
             try stmt.bindText(1, p)
             try stmt.run()
         }

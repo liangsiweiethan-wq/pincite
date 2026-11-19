@@ -189,7 +189,7 @@ extension IndexStore {
         do {
             let ins = try db.prepare("INSERT OR REPLACE INTO book_pinyin(book_id, pinyin_norm) VALUES(?, ?);")
             for (id, pinyin) in updates {
-                try ins.reset(); try ins.clearBindings()
+                ins.reset(); ins.clearBindings()
                 try ins.bindText(1, id)
                 try ins.bindText(2, pinyin)
                 try ins.run()
@@ -220,7 +220,7 @@ extension IndexStore {
         var seen = Set<String>()
         var out: [String] = []
         func collect(_ form: String) throws {
-            try stmt.reset(); try stmt.clearBindings()
+            stmt.reset(); stmt.clearBindings()
             try stmt.bindText(1, form)
             while try stmt.step() {
                 let id = stmt.text(0)

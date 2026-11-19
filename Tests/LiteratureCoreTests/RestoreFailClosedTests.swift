@@ -352,8 +352,6 @@ enum RestoreFailClosedSuite {
             },
 
             TestDesc(suite: "RestoreFailClosed", name: "ensureKeyDuplicateRereadThrowUnifiesToKeychainRead") {
-                let preset = SymmetricKey(size: .bits256)
-                let presetData = preset.withUnsafeBytes { Data($0) }
                 var loadCount = 0
                 AnnotationCrypto.keychainLoadKey = {
                     loadCount += 1

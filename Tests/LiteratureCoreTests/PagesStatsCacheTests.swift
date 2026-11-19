@@ -192,7 +192,7 @@ enum PagesStatsCacheTests {
                 defer { Fixtures.cleanup(dirDefault) }
                 let plain = try Fixtures.openStore(in: dirDefault)
                 try addBook(plain, id: "bA", name: "a.pdf", pages: ["one"])
-                try expectFalse(try plain.hasSqliteObjectLocked(type: "index", name: "idx_pages_stats"),
+                try expectFalse(plain.hasSqliteObjectLocked(type: "index", name: "idx_pages_stats"),
                                 "默认选项（App 路径）不得建页统计索引")
 
                 let dirOptIn = Fixtures.makeTempDir("pages-stats-optin")
@@ -200,7 +200,7 @@ enum PagesStatsCacheTests {
                 let opted = try IndexStore(path: dirOptIn.appendingPathComponent("index.db"),
                                            options: IndexStore.Options(allowPageStatsStatsIndex: true))
                 try addBook(opted, id: "bA", name: "a.pdf", pages: ["one", ""])
-                try expectTrue(try opted.hasSqliteObjectLocked(type: "index", name: "idx_pages_stats"),
+                try expectTrue(opted.hasSqliteObjectLocked(type: "index", name: "idx_pages_stats"),
                                "显式允许时应建 idx_pages_stats")
                 let plan = try opted.db.prepare("""
                 EXPLAIN QUERY PLAN

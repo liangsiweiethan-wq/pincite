@@ -149,7 +149,6 @@ enum PageNumberServiceSuite {
                 defer { Fixtures.cleanup(dir) }
                 // 物理页 2 已有列值 7（既有非空），物理页 1/3 为 NULL。
                 try writePages(store, bookID: bookID, count: 3, printed: [2: 7])
-                let csv = "p.pdf,1,10\np.pdf,2,20\np.pdf,3,30\n"
                 let backfilled = try store.backfillPrintedPages(bookID: bookID, pairs: [
                     (physical: 1, printed: 10), (physical: 2, printed: 20),
                     (physical: 3, printed: 30)])

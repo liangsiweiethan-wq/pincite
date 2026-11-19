@@ -29,8 +29,8 @@ enum HighlightStoreSuite {
                                              color: .yellow)
                 let id2 = try highlights.add(bookID: "bA", pageNumber: 1, utf16Start: 0, utf16End: 4,
                                              color: .blue, note: "n1")
-                let id3 = try highlights.add(bookID: "bB", pageNumber: 1, utf16Start: 3, utf16End: 9,
-                                             color: .red)
+                _ = try highlights.add(bookID: "bB", pageNumber: 1, utf16Start: 3, utf16End: 9,
+                                       color: .red)
                 try expectNotEqual(id1, id2)
 
                 let forBook = try highlights.highlightsForBook("bA")
@@ -335,7 +335,7 @@ enum HighlightStoreSuite {
                 // DROP 的表）→ 显式事务必须把先前插入一并回滚。
                 try expectTrue(store.db.tryExec("DROP TABLE user_highlights;"), "测试前置 DROP 必须成功")
                 _ = try? highlights.performWriteTransaction {
-                    _ = try highlights.insertRowLocked(try row())
+                    _ = try highlights.insertRowLocked(row())
                     let boom = try store.db.prepare("INSERT INTO user_highlights_missing(book_id) VALUES('x');")
                     try boom.run()
                 }

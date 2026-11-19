@@ -187,7 +187,7 @@ enum ReadingStatsSuite {
                 while try tables.step() { names.append(tables.text(0)) }
                 try expectEqual(names, ["page_footprints", "reading_sessions"])
                 let ver = try reopened.db.prepare("SELECT value FROM meta WHERE key='index_schema_version';")
-                try ver.step()
+                _ = try ver.step()
                 try expectEqual(ver.text(0), String(IndexStore.currentSchemaVersion))
                 let favs = try FavoritesStore(indexStore: reopened).all()
                 try expectEqual(favs.count, 1)

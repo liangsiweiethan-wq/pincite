@@ -50,6 +50,6 @@ public enum TextSourceMeta {
     /// 读书级来源（缺键/坏值 → nil，调用方按未知处理）。
     public static func read(store: IndexStore, bookID: String) -> Value? {
         guard let raw = try? store.metaValue(key(bookID)) else { return nil }
-        return Value(metaValue: raw ?? "")
+        return Value(metaValue: raw)
     }
 }

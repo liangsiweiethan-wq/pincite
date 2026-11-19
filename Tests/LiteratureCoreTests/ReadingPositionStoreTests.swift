@@ -99,12 +99,13 @@ enum ReadingPositionStoreSuite {
                 let dir = Fixtures.makeTempDir("rpos-legacy-fallback")
                 defer { Fixtures.cleanup(dir) }
                 let suiteName = "litsearch-rpos-test-\(UUID().uuidString)"
-                let legacyDefaults = UserDefaults(suiteName: suiteName)!
-                defer { legacyDefaults.removePersistentDomain(forName: suiteName) }
+                let seedDefaults = UserDefaults(suiteName: suiteName)!
+                defer { UserDefaults(suiteName: suiteName)?.removePersistentDomain(forName: suiteName) }
                 let legacyDict = #"{"oldBook":{"page":9,"scale":1.1}}"#.data(using: .utf8)!
-                legacyDefaults.set(legacyDict, forKey: "readingPositions")
+                seedDefaults.set(legacyDict, forKey: "readingPositions")
 
                 try await MainActor.run {
+                    let legacyDefaults = UserDefaults(suiteName: suiteName)!
                     let store = ReadingPositionStore(directory: dir, legacyDefaults: legacyDefaults)
                     let pos = try expectNotNil(store.position(for: "oldBook"), "legacy UserDefaults 档应可读")
                     try expectEqual(pos.page, 9)

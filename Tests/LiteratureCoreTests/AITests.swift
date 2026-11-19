@@ -22,7 +22,7 @@ final class CountingTransport: AITransport, @unchecked Sendable {
     }
 
     func send(_ endpoint: URL, payload: AIRequestPayload, apiKey: String?) async throws -> String {
-        lock.lock(); calls.append((endpoint, payload)); lock.unlock()
+        lock.withLock { calls.append((endpoint, payload)) }
         return reply
     }
 
@@ -51,7 +51,7 @@ final class HangingTransport: AITransport, @unchecked Sendable {
         do {
             try cancellation?.check()   // 协议契约：任何挂起/出网动作前先检查
         } catch {
-            lock.lock(); observedCancelBeforeSuspend = true; lock.unlock()
+            lock.withLock { observedCancelBeforeSuspend = true }
             throw error
         }
         return try await withCheckedThrowingContinuation { raw in

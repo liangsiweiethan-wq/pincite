@@ -145,7 +145,7 @@ public enum TestRegistry {
     static func resolvedSuites(
         _ environment: [String: String] = ProcessInfo.processInfo.environment
     ) -> [[TestDesc]] {
-        var suites = allSuites
+        let suites = allSuites
         // Optional suite filter.
         let only = environment["LIT_TESTS_ONLY"]
         let nameOnly = environment["LIT_TEST_NAME"]

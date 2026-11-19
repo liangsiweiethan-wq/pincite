@@ -215,7 +215,7 @@ enum WatchCompanionSuite {
             TestDesc(suite: "WatchCompanion", name: "splitContextReadsBothKeysIndependently") {
                 let summaryBytes = Data("summary-split".utf8)
                 let companionBytes = Data("companion-split".utf8)
-                let both = try WatchCompanion.splitContext(
+                let both = WatchCompanion.splitContext(
                     [WatchCompanion.contextKey: companionBytes,
                      "watch-summary-v1": summaryBytes],
                     summaryKey: "watch-summary-v1",
@@ -228,7 +228,7 @@ enum WatchCompanionSuite {
                 // 只带伴侣键的 context 必须独立处理
                 // 必须解出伴侣字节、摘要为 nil——接收侧据此独立处理两键。
                 let companionBytes = Data("companion-only-split".utf8)
-                let split = try WatchCompanion.splitContext(
+                let split = WatchCompanion.splitContext(
                     [WatchCompanion.contextKey: companionBytes],
                     summaryKey: "watch-summary-v1",
                     companionKey: WatchCompanion.contextKey)
@@ -238,13 +238,13 @@ enum WatchCompanionSuite {
 
             TestDesc(suite: "WatchCompanion", name: "splitContextKeepsSummaryOnlyAndEmptyContext") {
                 let summaryBytes = Data("summary-only-split".utf8)
-                let split = try WatchCompanion.splitContext(
+                let split = WatchCompanion.splitContext(
                     ["watch-summary-v1": summaryBytes],
                     summaryKey: "watch-summary-v1",
                     companionKey: WatchCompanion.contextKey)
                 try expectEqual(split.summary, summaryBytes)
                 try expectNil(split.companion)
-                let empty = try WatchCompanion.splitContext(
+                let empty = WatchCompanion.splitContext(
                     [:], summaryKey: "watch-summary-v1",
                     companionKey: WatchCompanion.contextKey)
                 try expectNil(empty.summary)

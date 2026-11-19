@@ -69,19 +69,19 @@ enum RegressionSuite {
 
             // 4. Cross-origin redirect detection (transport refuses to forward keys).
             TestDesc(suite: "Regression", name: "crossOriginRedirectDetection") {
-                let same = try expectNoThrow(try isCrossOriginRedirect(
+                let same = try expectNoThrow(isCrossOriginRedirect(
                     from: URL(string: "https://api.example.test/ask")!,
                     to: URL(string: "https://api.example.test/other")!))
                 try expectFalse(same!)
-                let crossHost = try expectNoThrow(try isCrossOriginRedirect(
+                let crossHost = try expectNoThrow(isCrossOriginRedirect(
                     from: URL(string: "https://api.example.test/ask")!,
                     to: URL(string: "https://evil.example.net/ask")!))
                 try expectTrue(crossHost!)
-                let crossScheme = try expectNoThrow(try isCrossOriginRedirect(
+                let crossScheme = try expectNoThrow(isCrossOriginRedirect(
                     from: URL(string: "https://api.example.test/ask")!,
                     to: URL(string: "http://api.example.test/ask")!))
                 try expectTrue(crossScheme!)
-                let defaultPorts = try expectNoThrow(try isCrossOriginRedirect(
+                let defaultPorts = try expectNoThrow(isCrossOriginRedirect(
                     from: URL(string: "https://api.example.test/a")!,
                     to: URL(string: "https://api.example.test:443/a")!))
                 try expectFalse(defaultPorts!, "implicit and explicit default ports are the same origin")
@@ -115,7 +115,7 @@ enum RegressionSuite {
                 try expectEqual(try store.metaValue("schema_version"), String(IndexStore.currentSchemaVersion))
                 try expectNil(book?.language, "migrated rows keep unknown metadata unknown")
                 // migrated store still indexes and serves new columns
-                try store.updateMetadata(bookID: "bold", title: "T", author: nil, version: nil, language: "zh", source: "manual")
+                _ = try store.updateMetadata(bookID: "bold", title: "T", author: nil, version: nil, language: "zh", source: "manual")
                 let updated = try store.book(byID: "bold")
                 try expectEqual(updated?.title, "T")
                 try expectEqual(updated?.language, "zh")
@@ -178,7 +178,7 @@ enum RegressionSuite {
                 Fixtures.makePDF(pages: [.init(lines: ["shared term 乙书"])], in: dir, named: "b.pdf")
                 _ = try await IndexingEngine(store: store, policy: ExclusionPolicy()).run(rootURL: dir)
                 let books = try store.allBooks().sorted { $0.fileName < $1.fileName }
-                try store.updateMetadata(bookID: books[0].id, title: nil, author: "鲁先", version: nil, language: "zh", source: "manual")
+                _ = try store.updateMetadata(bookID: books[0].id, title: nil, author: "鲁先", version: nil, language: "zh", source: "manual")
 
                 let service = SearchService(store: store)
                 let all = try service.searchDetailed("shared", options: SearchOptions(limit: 10))
@@ -209,7 +209,7 @@ enum RegressionSuite {
                 // (path/ID-level re-check only; no content is read for this).
                 let strictPolicy = ExclusionPolicy(config: ExclusionConfig(excludedIdentifiers: ["harmless-name"]))
                 let strict = SearchService(store: store, policy: strictPolicy)
-                let book = try store.allBooks()[0]
+                _ = try store.allBooks()[0]
                 try expectEqual(try strict.search("renamed").count, 0)
             },
 
@@ -434,7 +434,7 @@ enum RegressionSuite {
                 ], in: origDir, named: "book.pdf")
                 _ = try await IndexingEngine(store: store, policy: ExclusionPolicy()).indexExplicitFiles(urls: [origPDF])
 
-                let ocrPDF = Fixtures.makePDF(pages: [
+                Fixtures.makePDF(pages: [
                     .init(lines: ["p1 ocr"]), .init(lines: ["p2 ocr"]), .init(lines: ["p3 ocr"])
                 ], in: ocrDir, named: "book-ocr.pdf")
 

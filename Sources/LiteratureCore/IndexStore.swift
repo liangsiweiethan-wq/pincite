@@ -264,7 +264,7 @@ public final class IndexStore {
     var ftQual: String { fulltextAttached ? "ft." : "" }
     /// fulltext.db 当前是否已 ATTACH（split 形态 true；legacy 单库 false）。
     /// setter internal：migrations 扩展的搬迁函数需跨文件置位（同层封装先例）。
-    internal internal(set) var fulltextAttached = false
+    var fulltextAttached = false
     /// fulltext.db 落点（init 推导或显式注入；快照/备份天然不含）。
     public private(set) var fulltextURL: URL?
 
@@ -380,7 +380,9 @@ public final class IndexStore {
         } else if storedMode == nil {
             try setMetaValueLocked("search_mode", searchMode.rawValue)
         }
-        try setMetaValueLocked("sqlite_version", capabilities.sqliteVersion)
+        if (try? metaValueLocked("sqlite_version")) != capabilities.sqliteVersion {
+            try setMetaValueLocked("sqlite_version", capabilities.sqliteVersion)
+        }
         if let storedVer = try metaValueLocked("normalization_version") {
             if let v = Int(storedVer), v != Self.expectedNormalizationVersion {
                 FileHandle.standardError.write(Data("[IndexStore] Warning: normalization version mismatch (found '\(storedVer)', expected '\(Self.expectedNormalizationVersion)'). Queries will be rejected until index is rebuilt.\n".utf8))
@@ -740,7 +742,6 @@ public final class IndexStore {
             }
         }
         guard let reason else { return }
-        let healed: Bool
         do {
             _ = db.tryExec("DROP TABLE IF EXISTS \(ftQual)bigram_index;")
             guard db.tryExec("""
@@ -752,9 +753,7 @@ public final class IndexStore {
                 throw StoreError.description("重建 bigram_index 的 DDL 执行失败")
             }
             try rebuildBigramInvertedIndexLocked()
-            healed = true
         } catch {
-            healed = false
             // 重建失败：置脏让下一次 ensureBigramIndexFresh 重试；查询侧
             // （candidatePageIDsViaInvertedIndexLocked）见脏标即走 FTS/LIKE。
             try? setMetaValueLocked("bidx_dirty", "1")
@@ -766,7 +765,7 @@ public final class IndexStore {
         }
         try setMetaValueLocked("last_selfheal_at", String(Int(Date().timeIntervalSince1970)))
         try setMetaValueLocked("last_selfheal_reason", reason)
-        try setMetaValueLocked("last_selfheal_ok", healed ? "1" : "0")
+        try setMetaValueLocked("last_selfheal_ok", "1")
         FileHandle.standardError.write(Data("[IndexStore] 索引自愈完成: \(reason)\n".utf8))
     }
 
@@ -1158,7 +1157,7 @@ public final class IndexStore {
         """)
         let insFTS = searchMode == .fts5Trigram ? try db.prepare("INSERT INTO pages_fts(rowid, text_bigram) VALUES(?, ?);") : nil
         for page in pages {
-            try ins.reset(); try ins.clearBindings()
+            ins.reset(); ins.clearBindings()
             try ins.bindText(1, bookID)
             try ins.bindInt(2, Int64(page.pageNumber))
             if let label = page.label { try ins.bindText(3, label) } else { try ins.bindNull(3) }
@@ -1170,7 +1169,7 @@ public final class IndexStore {
             try ins.bindText(9, LatinProjection.transform(page.textNorm))
             try ins.run()
             if let insFTS {
-                try insFTS.reset(); try insFTS.clearBindings()
+                insFTS.reset(); insFTS.clearBindings()
                 try insFTS.bindInt(1, ins.lastInsertRowid)
                 try insFTS.bindText(2, Self.bigramize(page.textNorm))
                 try insFTS.run()
@@ -1267,7 +1266,7 @@ public final class IndexStore {
         var totalBytes = 0
         let sel = try db.prepare("SELECT length(rowids) FROM bigram_index WHERE bigram = ?;")
         for g in grams {
-            try sel.reset(); try sel.clearBindings()
+            sel.reset(); sel.clearBindings()
             try sel.bindText(1, g)
             guard try sel.step() else { return [:] }
             totalBytes += Int(sel.int(0))
@@ -1275,7 +1274,7 @@ public final class IndexStore {
         guard totalBytes > 2_000_000 else { return nil }
         let ftsQuery = grams.joined(separator: " AND ")
         let stmt = try db.prepare("SELECT p.book_id, COUNT(*) FROM pages p JOIN pages_fts f ON f.rowid = p.rowid WHERE pages_fts MATCH ? GROUP BY p.book_id;")
-        try stmt.reset(); try stmt.clearBindings()
+        stmt.reset(); stmt.clearBindings()
         try stmt.bindText(1, ftsQuery)
         var out: [String: Int] = [:]
         while try stmt.step() { out[stmt.text(0)] = Int(stmt.int(1)) }
@@ -1311,7 +1310,7 @@ public final class IndexStore {
         // ORDER BY rowid ASC 保证输出流单调递增，消除 Swift 运行时 String 哈希随机化，
         // 直出有序 [Int64] 承接，与 SQLite 物理行升序严格同构。
         let ftsSel = try db.prepare("SELECT rowid FROM pages_fts WHERE pages_fts MATCH ? ORDER BY rowid ASC;")
-        try ftsSel.reset(); try ftsSel.clearBindings()
+        ftsSel.reset(); ftsSel.clearBindings()
         try ftsSel.bindText(1, ftsQuery)
         var out: [Int64] = []
         while try ftsSel.step() { out.append(ftsSel.int(0)) }
@@ -1419,7 +1418,7 @@ public final class IndexStore {
             try db.exec("BEGIN IMMEDIATE;")
             let ins = try db.prepare("INSERT OR REPLACE INTO \(ftQual)book_native_counts VALUES(?,?);")
             for (k, v) in fresh {
-                try ins.reset(); try ins.clearBindings()
+                ins.reset(); ins.clearBindings()
                 try ins.bindText(1, k); try ins.bindInt(2, Int64(v)); try ins.run()
             }
             try db.exec("COMMIT;")
@@ -1578,13 +1577,13 @@ public final class IndexStore {
         // 单调契约）＋本函数书域 filter 保序（Array.filter 依序保留元素）；
         // 输出序终由 `ORDER BY c.id ASC` 锁定。断言仅 debug 编译，release
         // 零开销。
-        if _isDebugAssertConfiguration() {
-            var prev = Int64.min
-            for id in uniqueRowIDs {
-                assert(id >= prev, "temp_candidates 灌装输入必须按 rowid 非降（有序契约被破坏）")
-                prev = id
-            }
+        #if DEBUG
+        var prev = Int64.min
+        for id in uniqueRowIDs {
+            assert(id >= prev, "temp_candidates 灌装输入必须按 rowid 非降（有序契约被破坏）")
+            prev = id
         }
+        #endif
 
         let workerCount = min(Self.materializeMaxWorkers,
                               max(2, ProcessInfo.processInfo.activeProcessorCount),
@@ -1828,7 +1827,7 @@ public final class IndexStore {
             try delMap.run()
             let insMap = try db.prepare("INSERT INTO ocr_pages(book_id, original_page, ocr_page) VALUES(?,?,?);")
             for p in mapping {
-                try insMap.reset(); try insMap.clearBindings()
+                insMap.reset(); insMap.clearBindings()
                 try insMap.bindText(1, bookID)
                 try insMap.bindInt(2, Int64(p.originalPage))
                 try insMap.bindInt(3, Int64(p.ocrPage))
@@ -1847,12 +1846,12 @@ public final class IndexStore {
                 : nil
             for u in updates {
                 if let delFTS {
-                    try delFTS.reset(); try delFTS.clearBindings()
+                    delFTS.reset(); delFTS.clearBindings()
                     try delFTS.bindText(1, bookID)
                     try delFTS.bindInt(2, Int64(u.originalPage))
                     try delFTS.run()
                 }
-                try upd.reset(); try upd.clearBindings()
+                upd.reset(); upd.clearBindings()
                 try upd.bindText(1, u.textOriginal)
                 try upd.bindText(2, u.textNorm)
                 try upd.bindBlob(3, int32ArrayData(u.normStarts))
@@ -1862,7 +1861,7 @@ public final class IndexStore {
                 try upd.bindInt(7, Int64(u.originalPage))
                 try upd.run()
                 if let insFTS {
-                    try insFTS.reset(); try insFTS.clearBindings()
+                    insFTS.reset(); insFTS.clearBindings()
                     try insFTS.bindText(1, Self.bigramize(u.textNorm))
                     try insFTS.bindText(2, bookID)
                     try insFTS.bindInt(3, Int64(u.originalPage))
@@ -1908,12 +1907,12 @@ public final class IndexStore {
                 : nil
             for p in pages {
                 if let delFTS {
-                    try delFTS.reset(); try delFTS.clearBindings()
+                    delFTS.reset(); delFTS.clearBindings()
                     try delFTS.bindText(1, bookID)
                     try delFTS.bindInt(2, Int64(p))
                     try delFTS.run()
                 }
-                try upd.reset(); try upd.clearBindings()
+                upd.reset(); upd.clearBindings()
                 try upd.bindText(1, bookID)
                 try upd.bindInt(2, Int64(p))
                 try upd.run()
@@ -2088,7 +2087,7 @@ public final class IndexStore {
                 for r in rids {
                     withUnsafeBytes(of: r.bigEndian) { blob.append(contentsOf: $0) }
                 }
-                try ins.reset(); try ins.clearBindings()
+                ins.reset(); ins.clearBindings()
                 try ins.bindText(1, g)
                 try ins.bindBlob(2, blob)
                 try ins.run()
@@ -2140,7 +2139,7 @@ public final class IndexStore {
         var totalBytes = 0
         var blobs: [Data?] = []
         for g in bigrams {
-            try sel.reset(); try sel.clearBindings()
+            sel.reset(); sel.clearBindings()
             try sel.bindText(1, g)
             guard (try sel.step()) else { return [] }
             let blob = sel.blob(0)
@@ -2151,7 +2150,7 @@ public final class IndexStore {
         if totalBytes > 2_000_000, bigrams.allSatisfy({ $0.allSatisfy { $0.isASCII } }) {
             let ftsQuery = bigrams.joined(separator: " AND ")
             let ftsSel = try db.prepare("SELECT p.rowid FROM pages p JOIN pages_fts f ON f.rowid = p.rowid WHERE pages_fts MATCH ?;")
-            try ftsSel.reset(); try ftsSel.clearBindings()
+            ftsSel.reset(); ftsSel.clearBindings()
             try ftsSel.bindText(1, ftsQuery)
             var ftsSet = Set<UInt32>()
             while try ftsSel.step() {

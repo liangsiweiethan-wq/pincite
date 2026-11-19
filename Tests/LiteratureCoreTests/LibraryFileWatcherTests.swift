@@ -68,12 +68,12 @@ enum LibraryFileWatcherSuite {
                 // 三连发（间隔 < debounce）：每次都重置防抖计时。
                 for name in ["a.pdf", "b.pdf", "a.pdf"] {
                     watcher.testInjectEvents([dir.appendingPathComponent(name).path])
-                    Thread.sleep(forTimeInterval: 0.1)
+                    try await Task.sleep(nanoseconds: 100_000_000)
                 }
                 try expectTrue(watcher.testWaitForSettle(timeout: 5))
                 try expectTrue(collector.waitFor(1, timeout: 5))
                 // 宽限窗：确认没有第二拍。
-                Thread.sleep(forTimeInterval: 0.6)
+                try await Task.sleep(nanoseconds: 600_000_000)
                 try expectEqual(collector.count, 1, "burst merged into exactly one settle")
                 try expectEqual(Set(collector.all.map { $0.lastPathComponent }), Set(["a.pdf", "b.pdf"]))
             },
@@ -90,7 +90,7 @@ enum LibraryFileWatcherSuite {
                 watcher.testInjectEvents([ghost.path])
                 try FileManager.default.removeItem(at: ghost)   // settle 前删除
                 try expectTrue(watcher.testWaitForSettle(timeout: 5))
-                Thread.sleep(forTimeInterval: 0.4)
+                try await Task.sleep(nanoseconds: 400_000_000)
                 try expectEqual(collector.count, 0, "vanished path filtered at settle")
             },
 
@@ -113,7 +113,7 @@ enum LibraryFileWatcherSuite {
                 watcher.stop()
                 try expectFalse(watcher.isWatching, "not watching after stop")
                 try Data("after".utf8).write(to: dir.appendingPathComponent("after.pdf"))
-                Thread.sleep(forTimeInterval: 1.5)
+                try await Task.sleep(nanoseconds: 1_500_000_000)
                 try expectEqual(collector.count, 1, "no callback after stop")
             },
         ]

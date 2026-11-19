@@ -70,8 +70,8 @@ enum AnnotationMergeSuite {
                 let (db, highlights, _) = try readyStore("hclash")
                 let engine = AnnotationMergeEngine(db: db)
                 let uuid = "hl-fixed-uuid"
-                try engine.merge(bundle: bundle(highlights: [highlight(uuid: uuid, note: "old", created: 100)],
-                                                strokes: []))
+                _ = try engine.merge(bundle: bundle(highlights: [highlight(uuid: uuid, note: "old", created: 100)],
+                                                    strokes: []))
                 // 远端同 uuid、created_at 更新 → 旧行墓碑 + 新行落库。
                 let out = try engine.merge(bundle: bundle(highlights: [highlight(uuid: uuid, note: "new", created: 200)],
                                                           strokes: []))
@@ -96,7 +96,7 @@ enum AnnotationMergeSuite {
                 let (db, _, strokes) = try readyStore("sclash")
                 let engine = AnnotationMergeEngine(db: db)
                 let uuid = "st-fixed-uuid"
-                try engine.merge(bundle: bundle(highlights: [], strokes: [stroke(inkStroke(uuid: uuid, created: 100))]))
+                _ = try engine.merge(bundle: bundle(highlights: [], strokes: [stroke(inkStroke(uuid: uuid, created: 100))]))
                 let out = try engine.merge(bundle: bundle(highlights: [],
                                                           strokes: [stroke(inkStroke(uuid: uuid, created: 300))]))
                 try expectEqual(out.replacedTombstoned, 1)
@@ -111,7 +111,7 @@ enum AnnotationMergeSuite {
             TestDesc(suite: "AnnotationMerge", name: "twoDevicesSamePageCoexist") {
                 let (db, _, strokes) = try readyStore("twodev")
                 let engine = AnnotationMergeEngine(db: db)
-                try engine.merge(bundle: bundle(highlights: [], strokes: [
+                _ = try engine.merge(bundle: bundle(highlights: [], strokes: [
                     stroke(inkStroke(uuid: "u-a", device: "devA", created: 100)),
                     stroke(inkStroke(uuid: "u-b", device: "devB", created: 105)),
                 ]))
@@ -178,8 +178,8 @@ enum AnnotationMergeSuite {
 
             TestDesc(suite: "AnnotationMerge", name: "exportRoundtripPreservesEverything") {
                 let (db, highlights, strokes) = try readyStore("roundtrip")
-                try highlights.add(bookID: "bA", pageNumber: 2, utf16Start: 0, utf16End: 5,
-                                   color: .yellow, note: "kept", anchorText: "abcde")
+                _ = try highlights.add(bookID: "bA", pageNumber: 2, utf16Start: 0, utf16End: 5,
+                                       color: .yellow, note: "kept", anchorText: "abcde")
                 try strokes.addStroke(inkStroke(uuid: "live-stroke"))
                 try strokes.addStroke(inkStroke(uuid: "dead-stroke", deleted: 123.0))
                 let exported = try AnnotationBundle.export(db: db, deviceID: "devExp")

@@ -32,7 +32,6 @@ enum FoundationModelsTransportSuite {
                     probe: FakeOnDeviceProbe(status: .available(contextTokens: 4096)))
                 guard case .cloud(let cfg) = outcome else {
                     try failTest("云端分型应得 .cloud")
-                    return
                 }
                 try expectEqual(cfg, cloud)
             },
@@ -42,7 +41,6 @@ enum FoundationModelsTransportSuite {
                 let outcome = OnDeviceRouter.route(profileKind: nil, resolved: cloud, probe: nil)
                 guard case .cloud = outcome else {
                     try failTest("nil 分型应按云端")
-                    return
                 }
             },
 
@@ -56,7 +54,6 @@ enum FoundationModelsTransportSuite {
                     probe: FakeOnDeviceProbe(status: .available(contextTokens: 4096)))
                 guard case .onDevice(let cfg) = outcome else {
                     try failTest("可用探针应得 .onDevice")
-                    return
                 }
                 try expectEqual(cfg.serviceURL, onDevice.serviceURL)
             },
@@ -73,7 +70,6 @@ enum FoundationModelsTransportSuite {
                     probe: FakeOnDeviceProbe(status: status))
                 guard case .onDeviceUnavailable(let carried) = outcome else {
                     try failTest("体检失败应得 .onDeviceUnavailable")
-                    return
                 }
                 try expectEqual(carried, status, "逐项类型化原因必须随路携带")
             },
@@ -87,11 +83,9 @@ enum FoundationModelsTransportSuite {
                     probe: nil)
                 guard case .onDeviceUnavailable(let status) = outcome else {
                     try failTest("nil 探针应 fail-closed")
-                    return
                 }
                 guard case .unavailable(let blocks) = status.availability else {
                     try failTest("应为 unavailable")
-                    return
                 }
                 try expectEqual(blocks.map(\.kind), [.osTooOld])
             },
@@ -109,7 +103,6 @@ enum FoundationModelsTransportSuite {
                 let status = OnDeviceModelStatus.unavailable(kinds.map { OnDeviceBlock(kind: $0) })
                 guard case .unavailable(let blocks) = status.availability else {
                     try failTest("unavailable 构造应保持")
-                    return
                 }
                 try expectEqual(blocks.count, 6)
                 try expectFalse(status.isAvailable)
@@ -120,7 +113,6 @@ enum FoundationModelsTransportSuite {
                 try expectTrue(status.isAvailable)
                 guard case .available(let tokens) = status.availability else {
                     try failTest("available 应携带 tokens")
-                    return
                 }
                 try expectEqual(tokens, 4096, "运行时读取值原样携带")
             },
@@ -242,7 +234,6 @@ enum FoundationModelsTransportSuite {
                 let error = AIAssistantError.refused("guardrail 拒答")
                 guard case .refused(let detail) = error else {
                     try failTest("refused 应保持 case 形状")
-                    return
                 }
                 try expectTrue(detail.contains("guardrail"))
                 try expectTrue(error.description.contains("refused"), "description 自动派生")

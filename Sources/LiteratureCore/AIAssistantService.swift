@@ -40,7 +40,7 @@ public struct AIConfiguration: Equatable {
 /// The exact content that would be sent, shown to the user before any request.
 public struct AIPreview: Equatable, Identifiable {
     /// The text selection sent to the AI (verbatim snippet + provenance).
-    public struct Selection: Equatable {
+    public struct Selection: Equatable, Sendable {
         public var bookID: String
         public var fingerprint: String
         public var physicalPage: Int
@@ -93,8 +93,8 @@ public struct AIConfirmation: Equatable {
     }
 }
 
-public struct AIRequestPayload: Codable, Equatable {
-    public struct SelectionPayload: Codable, Equatable {
+public struct AIRequestPayload: Codable, Equatable, Sendable {
+    public struct SelectionPayload: Codable, Equatable, Sendable {
         public var bookId: String
         public var fingerprint: String
         public var page: Int
@@ -135,13 +135,13 @@ public struct AIRequestPayload: Codable, Equatable {
     public var citationNote: String?
 }
 
-public struct AIParsedResponse: Equatable {
+public struct AIParsedResponse: Equatable, Sendable {
     public var answerText: String
     public var references: [AIReference]
 }
 
 /// Structured reference produced from an AI response.
-public struct AIReference: Codable, Equatable {
+public struct AIReference: Codable, Equatable, Sendable {
     public var bookId: String
     public var page: Int
     /// Optional fingerprint echoed by the model; presence is validated, absence allowed.

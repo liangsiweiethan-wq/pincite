@@ -25,7 +25,7 @@ enum SemanticCitationSuite {
                     refs, allowedSources: sources,
                     evidenceParagraphs: [SemanticAnchor(bookID: "b1", page: 1, paraIndex: 0)])
                 guard case .rejected(let bookID, let page, let reason) = decisions[0] else {
-                    try failTest("expected rejection"); return
+                    try failTest("expected rejection")
                 }
                 try expectEqual(bookID, "b1")
                 try expectEqual(page, 1)
@@ -51,7 +51,7 @@ enum SemanticCitationSuite {
                     refs, allowedSources: sources,
                     evidenceParagraphs: [SemanticAnchor(bookID: "b1", page: 9, paraIndex: 0)])
                 guard case .rejected(_, _, let reason) = decisions[0] else {
-                    try failTest("expected rejection"); return
+                    try failTest("expected rejection")
                 }
                 try expectTrue(reason.contains("out of range"), "page gate precedes para gate")
             },

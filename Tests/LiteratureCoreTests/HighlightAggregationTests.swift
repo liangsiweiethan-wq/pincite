@@ -196,10 +196,10 @@ enum HighlightAggregationSuite {
                 // 补列）：DROP 表制造损坏后重开新 store——重建 DDL 必须补回
                 // created_at 索引，迁移再补齐 三列。
                 try add(reopened, book: "bA", note: "second")
-                reopened.lock.lock()
-                reopened.writeBackupSnapshotLocked()
-                _ = reopened.db.tryExec("DROP TABLE user_highlights;")
-                reopened.lock.unlock()
+                reopened.lock.withLock {
+                    reopened.writeBackupSnapshotLocked()
+                    _ = reopened.db.tryExec("DROP TABLE user_highlights;")
+                }
                 let afterCrash = HighlightStore(indexStore: index)
                 try expectEqual(try createdIndexCount(afterCrash), 1,
                                 ".bak 重建 DDL 补回 created_at 索引")

@@ -262,7 +262,7 @@ extension IndexStore {
         guard !fm.fileExists(atPath: receipt.oldPath) else {
             return refusedPlan(receipt, reason: "旧盘路径仍在（复制而非改名）")
         }
-        if let owner = targetOwners[receipt.newPath] {
+        if targetOwners[receipt.newPath] != nil {
             return refusedPlan(receipt, reason: "新路径在本次已映射给别的书")
         }
         targetOwners[receipt.newPath] = "ocr:\(receipt.oldPath)"

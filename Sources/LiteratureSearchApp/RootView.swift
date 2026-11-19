@@ -69,7 +69,7 @@ struct RootView: View {
         // 按钮，形态照收藏回执；5 秒窗口语义在 AnnotationUndo/AppState）。
         .overlay(alignment: .bottom) {
             VStack(spacing: DS.Spacing.sm) {
-                if let undo = state.annotationUndo {
+                if state.annotationUndo != nil {
                     HStack(spacing: DS.Spacing.sm) {
                         Text(L10n.annotationDeletedToast)
                             .font(.callout)

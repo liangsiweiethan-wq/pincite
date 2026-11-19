@@ -2187,9 +2187,8 @@ struct PDFThumbnailRepresentable: NSViewRepresentable {
     }
 }
 
-// MARK: - f 键候选字母角标（小圆底＋字母；inkSecondary 系色，
-// 不新增琥珀位点——约束：琥珀零新增位点）。纯展示 NSView，只在装载时
-// 入层级、模式退出时移除（不泄漏 subview）。
+// MARK: - f 键候选字母角标（小圆底 + 字母；沿用 inkSecondary 色系，不新增琥珀高亮位点）
+// 纯展示 NSView，仅在进入跟随模式时挂载、退出时移除（不泄漏 subview）。
 
 private final class FollowBadgeView: NSView {
     private let letter: String

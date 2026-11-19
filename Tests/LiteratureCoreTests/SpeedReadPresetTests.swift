@@ -176,7 +176,6 @@ enum SpeedReadPresetSuite {
                     store.bind(.speedRead, to: profile.id)
                     guard case .success(let cfg) = store.resolveConfiguration(for: .speedRead) else {
                         try failTest("speedRead 绑定后应可解析")
-                        return
                     }
                     try expectEqual(cfg.model, "model-a")
                     try expectEqual(cfg.apiKey, "sk-1")

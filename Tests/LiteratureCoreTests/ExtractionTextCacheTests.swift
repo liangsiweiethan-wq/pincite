@@ -19,8 +19,8 @@ enum ExtractionTextCacheSuite {
                 let plain = try PDFTextExtractor.extract(url: pdf)
                 let sha = try Fingerprint.sha256Hex(ofFileAt: pdf)
                 try expectNil(cache.result(fileSHA256: sha), "cold cache misses")
-                let viaCache = try PDFTextExtractor.extract(url: pdf, limits: .init(),
-                                                             cache: cache, precomputedSHA256: sha)
+                _ = try PDFTextExtractor.extract(url: pdf, limits: .init(),
+                                                 cache: cache, precomputedSHA256: sha)
                 // 错键前缀取真键首字符的互补位——原写法硬置 "0"，sha 恰以 "0"
                 // 开头时错键≡真键（1/16 概率抽签式必红，门禁第 3 轮实证），
                 // 命中刚存条目。互补位可证恒异。

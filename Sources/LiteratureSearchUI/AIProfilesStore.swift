@@ -560,8 +560,6 @@ public struct AIProfileConnectionTester {
     /// 发一条真实短问（调用点=用户显式点击「测试」）。密钥缺失 fail-closed，
     /// 不发出请求。
     public func test(_ profile: AIProfile) async -> AIProfilePingResult {
-        let base = AIProfilePingResult(ok: false, statusCode: 0, latencyMs: 0,
-                                       echo: "", errorSnippet: "", transportError: nil)
         guard let url = URL(string: profile.baseURL.trimmingCharacters(in: .whitespacesAndNewlines)),
               url.scheme?.lowercased() == "https", url.host != nil else {
             return AIProfilePingResult(ok: false, statusCode: 0, latencyMs: 0, echo: "",

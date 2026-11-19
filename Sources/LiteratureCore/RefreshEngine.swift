@@ -206,6 +206,11 @@ public final class RefreshEngine: @unchecked Sendable {
     // MARK: - 状态（锁保护）
 
     private let lock = NSLock()
+    private func withStateLock<T>(_ body: () throws -> T) rethrows -> T {
+        lock.lock()
+        defer { lock.unlock() }
+        return try body()
+    }
     private var phase: Phase = .idle
     private var pauseRequested = false
     private var stopRequested = false
@@ -317,12 +322,10 @@ public final class RefreshEngine: @unchecked Sendable {
 
     @discardableResult
     public func start(plan: BatchPlan, kind: BatchKind = .ledger) async -> Bool {
-        lock.lock()
-        guard phase == .idle || phase == .stopped || phase == .completed || phase == .completedWithResidue else {
-            lock.unlock()
-            return false
+        let canStart = withStateLock {
+            phase == .idle || phase == .stopped || phase == .completed || phase == .completedWithResidue
         }
-        lock.unlock()
+        guard canStart else { return false }
 
         // 开跑前自动备份（唯一快照）：备份失败＝不开跑。
         setPhase(.backingUp)
@@ -336,29 +339,29 @@ public final class RefreshEngine: @unchecked Sendable {
 
         // 已有同名 journal 时添加后缀，避免追加或覆盖既有文件。
         let batchID = RefreshJournal.uniqueBatchID(in: journalDir)
-        lock.lock()
-        currentPlan = plan
-        currentBatchID = batchID
-        currentKind = kind
-        completedBookIDs = []
-        failures = []
-        // 新批显式清零生命周期旗标——旧批
-        // 残留（暂停/停止请求）绝不带进新批首书。
-        pauseRequested = false
-        stopRequested = false
-        journalLineCount = 0
-        throughputWindow = []
-        activeAccum = 0
-        activeSince = nil
-        settledOrder = []
-        booksSinceProbe = 0
-        progress = Progress()
-        progress.phase = .backingUp
-        progress.batchID = batchID
-        progress.batchKind = kind == .syncRepair ? BatchKind.syncRepair.rawValue : nil
-        progress.booksTotal = plan.books.count
-        progress.pagesPlanTotal = plan.pagesTotal
-        lock.unlock()
+        withStateLock {
+            currentPlan = plan
+            currentBatchID = batchID
+            currentKind = kind
+            completedBookIDs = []
+            failures = []
+            // 新批显式清零生命周期旗标——旧批
+            // 残留（暂停/停止请求）绝不带进新批首书。
+            pauseRequested = false
+            stopRequested = false
+            journalLineCount = 0
+            throughputWindow = []
+            activeAccum = 0
+            activeSince = nil
+            settledOrder = []
+            booksSinceProbe = 0
+            progress = Progress()
+            progress.phase = .backingUp
+            progress.batchID = batchID
+            progress.batchKind = kind == .syncRepair ? BatchKind.syncRepair.rawValue : nil
+            progress.booksTotal = plan.books.count
+            progress.pagesPlanTotal = plan.pagesTotal
+        }
 
         // journal 只留最近一份：新批开跑删旧批。
         let journalURL = journalDir.appendingPathComponent(RefreshJournal.fileName(forBatchID: batchID))
@@ -414,15 +417,16 @@ public final class RefreshEngine: @unchecked Sendable {
     /// paused/stopped 起可续；续跑前若无快照先补备一份再动库。
     @discardableResult
     public func resume() async -> Bool {
-        lock.lock()
-        guard phase == .paused || phase == .stopped,
-              let plan = currentPlan, currentBatchID != nil else {
-            lock.unlock()
-            return false
+        let plan: BatchPlan? = withStateLock {
+            guard phase == .paused || phase == .stopped,
+                  let plan = currentPlan, currentBatchID != nil else {
+                return nil
+            }
+            pauseRequested = false
+            stopRequested = false
+            return plan
         }
-        pauseRequested = false
-        stopRequested = false
-        lock.unlock()
+        guard let plan else { return false }
 
         if !(await runWithFreshSnapshotIfMissing(plan: plan)) { return false }
         do {
@@ -448,9 +452,7 @@ public final class RefreshEngine: @unchecked Sendable {
     /// 续跑前若无快照先补备（fail-closed 同款）。
     @discardableResult
     public func resumeLastBatch() async -> Bool {
-        lock.lock()
-        let ph = phase
-        lock.unlock()
+        let ph = withStateLock { phase }
         guard ph != .running, ph != .backingUp else { return false }
         guard let resumable = loadResumableBatch() else {
             if let reason = lastResumableBlockReason() {
@@ -463,33 +465,34 @@ public final class RefreshEngine: @unchecked Sendable {
         // 已终态书计数镜像 journal：done+skip 与 fail 分开。
         let settledCount = resumable.plan.books
             .filter { resumable.completedBookIDs.contains($0.bookID) }.count
-        lock.lock()
-        currentPlan = resumable.plan
-        currentBatchID = resumable.batchID
-        currentKind = resumable.kind
-        completedBookIDs = resumable.completedBookIDs
-        failures = resumable.failures
-        journalLineCount = RefreshJournal.readEvents(
+        let initialJournalLineCount = RefreshJournal.readEvents(
             at: journalDir.appendingPathComponent(RefreshJournal.fileName(forBatchID: resumable.batchID))).count
-        throughputWindow = []
-        activeAccum = 0
-        activeSince = nil
-        // 按 journal 落盘序恢复——抽验样本取最近结算书（非 Set 随机序）。
-        settledOrder = resumable.settledOrder
-        booksSinceProbe = 0
-        progress = Progress()
-        progress.phase = .backingUp
-        progress.batchID = resumable.batchID
-        progress.batchKind = resumable.kind == .syncRepair ? BatchKind.syncRepair.rawValue : nil
-        progress.booksTotal = resumable.plan.books.count
-        progress.pagesPlanTotal = resumable.plan.pagesTotal
-        // 抽验残留种子不计入失败书数（progress.failed 全量保留供展示/收尾对账）。
-        progress.booksFailed = resumable.failures.filter { $0.bookID != "audit-probe" }.count
-        progress.booksDone = settledCount - progress.booksFailed
-        progress.succeededBookIDs = resumable.succeededBookIDs
-        progress.failed = resumable.failures
-        progress.journalLines = journalLineCount
-        lock.unlock()
+        withStateLock {
+            currentPlan = resumable.plan
+            currentBatchID = resumable.batchID
+            currentKind = resumable.kind
+            completedBookIDs = resumable.completedBookIDs
+            failures = resumable.failures
+            journalLineCount = initialJournalLineCount
+            throughputWindow = []
+            activeAccum = 0
+            activeSince = nil
+            // 按 journal 落盘序恢复——抽验样本取最近结算书（非 Set 随机序）。
+            settledOrder = resumable.settledOrder
+            booksSinceProbe = 0
+            progress = Progress()
+            progress.phase = .backingUp
+            progress.batchID = resumable.batchID
+            progress.batchKind = resumable.kind == .syncRepair ? BatchKind.syncRepair.rawValue : nil
+            progress.booksTotal = resumable.plan.books.count
+            progress.pagesPlanTotal = resumable.plan.pagesTotal
+            // 抽验残留种子不计入失败书数（progress.failed 全量保留供展示/收尾对账）。
+            progress.booksFailed = resumable.failures.filter { $0.bookID != "audit-probe" }.count
+            progress.booksDone = settledCount - progress.booksFailed
+            progress.succeededBookIDs = resumable.succeededBookIDs
+            progress.failed = resumable.failures
+            progress.journalLines = journalLineCount
+        }
         publishLocked()
 
         if !(await runWithFreshSnapshotIfMissing(plan: resumable.plan)) { return false }
@@ -677,26 +680,26 @@ public final class RefreshEngine: @unchecked Sendable {
         if probeFirst, !completedBookIDsCopy().isEmpty {
             do { try runAuditProbe(store: store, plan: plan, writer: writer) }
             catch {
-                lock.lock()
-                pauseRequested = true
-                failures.append(BookFailure(bookID: "audit-probe",
-                                            fileName: "批间抽验",
-                                            message: "续跑前抽验执行失败：\(error)"))
-                progress.failed = failures
-                lock.unlock()
+                withStateLock {
+                    pauseRequested = true
+                    failures.append(BookFailure(bookID: "audit-probe",
+                                                fileName: "批间抽验",
+                                                message: "续跑前抽验执行失败：\(error)"))
+                    progress.failed = failures
+                }
                 publishLocked()
             }
             if pauseRequestedCopy() {
-                lock.lock()
-                let allSettled = progress.booksDone + progress.booksFailed >= plan.books.count
-                lock.unlock()
+                let allSettled = withStateLock {
+                    progress.booksDone + progress.booksFailed >= plan.books.count
+                }
                 if allSettled {
                     // 全数已终态：按收尾语义继续（残留如实列）。门禁旗标必须
                     // 就地清除——否则残留到下一批，start 后
                     // 首书即被旧旗标暂停（「污染下一批」形态）。
-                    lock.lock()
-                    pauseRequested = false
-                    lock.unlock()
+                    withStateLock {
+                        pauseRequested = false
+                    }
                     skipLoop = true
                 } else {
                     finishPaused(writer)
@@ -707,22 +710,26 @@ public final class RefreshEngine: @unchecked Sendable {
         var index = 0
         if !skipLoop {
             for book in pending {
-            lock.lock()
-            if stopRequested {
-                lock.unlock()
+            enum LoopAction { case stop, pause, proceed }
+            let action: LoopAction = withStateLock {
+                if stopRequested { return .stop }
+                if pauseRequested { return .pause }
+                progress.currentBookName = book.displayName
+                progress.currentBookIndex = index + 1
+                progress.currentBookPages = book.declaredPages
+                progress.currentBookPagesDone = book.declaredPages != nil ? 0 : nil
+                return .proceed
+            }
+            switch action {
+            case .stop:
                 finishStopped(writer)
                 return
-            }
-            if pauseRequested {
-                lock.unlock()
+            case .pause:
                 finishPaused(writer)
                 return
+            case .proceed:
+                break
             }
-            progress.currentBookName = book.displayName
-            progress.currentBookIndex = index + 1
-            progress.currentBookPages = book.declaredPages
-            progress.currentBookPagesDone = book.declaredPages != nil ? 0 : nil
-            lock.unlock()
             publishLocked()
 
             // journal 写失败＝断点依据丢失——立即
@@ -774,76 +781,77 @@ public final class RefreshEngine: @unchecked Sendable {
                 return
             }
 
-            lock.lock()
-            completedBookIDs.insert(book.bookID)
-            settledOrder.append(book.bookID)
-            booksSinceProbe += 1
-            switch result.verdict {
-            case .updated, .unchanged:
-                progress.booksDone += 1
-                progress.succeededBookIDs.insert(book.bookID)
-            case .missing, .error:
-                progress.booksFailed += 1
-                failures.append(BookFailure(bookID: book.bookID,
-                                            fileName: book.fileName,
-                                            message: result.message ?? result.verdict.rawValue))
-                progress.failed = failures
-            }
-            progress.currentBookName = nil
-            progress.currentBookPagesDone = result.pages > 0 ? result.pages : progress.currentBookPagesDone
-            progress.pagesSettled += max(result.pages, 0)
-            throughputWindow.append((max(result.pages, 0), max(result.seconds, 0.001)))
-            if throughputWindow.count > 20 { throughputWindow.removeFirst() }
-            let windowPages = throughputWindow.reduce(0) { $0 + $1.pages }
-            let windowSeconds = throughputWindow.reduce(0.0) { $0 + $1.seconds }
-            if windowSeconds > 0, windowPages > 0 {
-                let rate = Double(windowPages) / windowSeconds
-                if rate.isFinite, rate > 0 {
-                    progress.ratePagesPerSecond = rate
-                    let remaining = Double(progress.pagesPlanTotal - progress.pagesSettled)
-                    if remaining > 0 {
-                        let eta = remaining / rate
-                        progress.etaSeconds = eta.isFinite ? Int(eta.rounded()) : nil
-                    } else {
-                        progress.etaSeconds = 0
+            withStateLock {
+                completedBookIDs.insert(book.bookID)
+                settledOrder.append(book.bookID)
+                booksSinceProbe += 1
+                switch result.verdict {
+                case .updated, .unchanged:
+                    progress.booksDone += 1
+                    progress.succeededBookIDs.insert(book.bookID)
+                case .missing, .error:
+                    progress.booksFailed += 1
+                    failures.append(BookFailure(bookID: book.bookID,
+                                                fileName: book.fileName,
+                                                message: result.message ?? result.verdict.rawValue))
+                    progress.failed = failures
+                }
+                progress.currentBookName = nil
+                progress.currentBookPagesDone = result.pages > 0 ? result.pages : progress.currentBookPagesDone
+                progress.pagesSettled += max(result.pages, 0)
+                throughputWindow.append((max(result.pages, 0), max(result.seconds, 0.001)))
+                if throughputWindow.count > 20 { throughputWindow.removeFirst() }
+                let windowPages = throughputWindow.reduce(0) { $0 + $1.pages }
+                let windowSeconds = throughputWindow.reduce(0.0) { $0 + $1.seconds }
+                if windowSeconds > 0, windowPages > 0 {
+                    let rate = Double(windowPages) / windowSeconds
+                    if rate.isFinite, rate > 0 {
+                        progress.ratePagesPerSecond = rate
+                        let remaining = Double(progress.pagesPlanTotal - progress.pagesSettled)
+                        if remaining > 0 {
+                            let eta = remaining / rate
+                            progress.etaSeconds = eta.isFinite ? Int(eta.rounded()) : nil
+                        } else {
+                            progress.etaSeconds = 0
+                        }
                     }
                 }
             }
-            lock.unlock()
             publishLocked()
             perBookHook?(index)
             index += 1
 
             // 批间只读抽验：到间隔即抽最近样本；不过自动暂停。
             if booksSinceProbe >= auditProbeInterval {
-                lock.lock(); booksSinceProbe = 0; lock.unlock()
+                withStateLock { booksSinceProbe = 0 }
                 do {
                     try runAuditProbe(store: store, plan: plan, writer: writer)
                 } catch {
                     // 探针 SQL/检索抛错或抽验账目写失败——与抽验不过同样处理，
                     // 一律置暂停不续写。
-                    lock.lock()
-                    pauseRequested = true
-                    failures.append(BookFailure(bookID: "audit-probe",
-                                                fileName: "批间抽验",
-                                                message: "抽验执行失败：\(error)"))
-                    progress.failed = failures
-                    lock.unlock()
+                    withStateLock {
+                        pauseRequested = true
+                        failures.append(BookFailure(bookID: "audit-probe",
+                                                    fileName: "批间抽验",
+                                                    message: "抽验执行失败：\(error)"))
+                        progress.failed = failures
+                    }
                     publishLocked()
                 }
-                lock.lock()
-                let paused = pauseRequested
-                lock.unlock()
+                let paused = withStateLock { pauseRequested }
                 if paused {
                     // 抽验不过已置暂停：书已全部终态则照常收尾（残留如实列），
                     // 否则立即在书边界收摊暂停（「不继续写」）。
-                    lock.lock()
-                    if progress.booksDone + progress.booksFailed >= plan.books.count {
-                        pauseRequested = false
-                        lock.unlock()
+                    let allSettled = withStateLock {
+                        if progress.booksDone + progress.booksFailed >= plan.books.count {
+                            pauseRequested = false
+                            return true
+                        }
+                        return false
+                    }
+                    if allSettled {
                         break
                     }
-                    lock.unlock()
                     finishPaused(writer)
                     return
                 }
@@ -851,9 +859,9 @@ public final class RefreshEngine: @unchecked Sendable {
             }
         }
         let check = finalThreeWayCheck(plan: plan, store: store)
-        lock.lock()
-        progress.finalCheck = check
-        lock.unlock()
+        withStateLock {
+            progress.finalCheck = check
+        }
         do {
             try append(writer) {
                 RefreshJournalEvent(event: RefreshJournalEventName.batchFinalize,

@@ -39,7 +39,6 @@ enum AnnotationExportHTMLTXTSuite {
                 ]
                 let html = AnnotationExportAssembler.annotationsHTML(rows: rows)
                 // 列集合单一事实：表头 th 序列与 CSV 表头字段序列逐字一致。
-                let csvHeader = "book_id,book_title,page,type,color,text,note,created_at_iso8601,view_source,anchor_verified"
                 try expectTrue(html.contains("<tr><th>book_id</th><th>book_title</th><th>page</th><th>type</th><th>color</th><th>text</th><th>note</th><th>created_at_iso8601</th><th>view_source</th><th>anchor_verified</th></tr>"),
                                "表头必须与 CSV 列集合一致：\\(html.prefix(300))")
                 // 行数对齐：数据行恰两行（每行一 <tr>）。

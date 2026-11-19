@@ -307,7 +307,7 @@ struct SearchView: View {
     @ViewBuilder
     private var statusBar: some View {
         let theme = DS.Theme.storage(dsTheme)
-        return VStack(alignment: .leading, spacing: DS.Spacing.sm) {
+        VStack(alignment: .leading, spacing: DS.Spacing.sm) {
             if state.isSearching {
                 HStack(spacing: DS.Spacing.xs) {
                     ProgressView()

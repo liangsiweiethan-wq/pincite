@@ -124,7 +124,7 @@ extension IndexStore {
                 while try rows.step() {
                     let rowid = rows.int(0)
                     let textNorm = rows.text(1)
-                    try ins.reset(); try ins.clearBindings()
+                    ins.reset(); ins.clearBindings()
                     try ins.bindInt(1, rowid)
                     try ins.bindText(2, Self.bigramize(textNorm))
                     try ins.run()
@@ -159,13 +159,18 @@ extension IndexStore {
         try migrateSchemaV12()              // books.content_category 内容类别列＋存量回填（幂等；extension 定义）
         try migrateSchemaV13()
         try migrateSchemaV14()              // 页统计覆盖索引 idx_pages_stats（门控；本文件定义）
-        try backfillPinyinIfNeededLocked()   // 拼音书目投影（缺行才补，幂等）
+        _ = try backfillPinyinIfNeededLocked()   // 拼音书目投影（缺行才补，幂等）
         try ensureWftsReadyOnOpenLocked()    // wfts_ready 缺失时从 checkpoint 续跑回填（幂等；仅写库形态，只读副本 no-op）
-        try setMetaValueLocked("schema_version", String(Self.currentSchemaVersion))
+        let targetVersion = String(Self.currentSchemaVersion)
+        if (try? metaValueLocked("schema_version")) != targetVersion {
+            try setMetaValueLocked("schema_version", targetVersion)
+        }
         // 独立 schema 版本门禁键（迁移完成后写入现行值）。其上方
         // 注释即向前兼容语义契约：库内值低于 currentSchemaVersion → 既有迁移
         // 链自动升级；高于 → init 里的门禁直接拒绝打开。
-        try setMetaValueLocked(Self.indexSchemaVersionMetaKey, String(Self.currentSchemaVersion))
+        if (try? metaValueLocked(Self.indexSchemaVersionMetaKey)) != targetVersion {
+            try setMetaValueLocked(Self.indexSchemaVersionMetaKey, targetVersion)
+        }
     }
 
     func migrateSchemaV4() throws {
@@ -328,7 +333,7 @@ extension IndexStore {
         do {
             for (id, path, title) in batch {
                 let cat = classifyContentCategory(path: path, title: title)
-                try upd.reset(); try upd.clearBindings()
+                upd.reset(); upd.clearBindings()
                 try upd.bindText(1, cat)
                 try upd.bindText(2, id)
                 try upd.run()
@@ -421,7 +426,7 @@ extension IndexStore {
            let t = TimeInterval(hb), Date().timeIntervalSince1970 - t < 60 {
             return
         }
-        try backfillLatinProjectionLocked(progress: nil)
+        _ = try backfillLatinProjectionLocked(progress: nil)
     }
 
     // MARK: - 存量搬迁（一次性；CLI migrate-fulltext 的
@@ -516,10 +521,10 @@ extension IndexStore {
                 started = true
                 try db.exec("BEGIN IMMEDIATE;")
                 do {
-                    try move.reset(); try move.clearBindings()
+                    move.reset(); move.clearBindings()
                     try move.bindText(1, bookID)
                     try move.run()
-                    try cpSet.reset(); try cpSet.clearBindings()
+                    cpSet.reset(); cpSet.clearBindings()
                     try cpSet.bindText(1, bookID)
                     try cpSet.run()
                     try db.exec("COMMIT;")
@@ -558,7 +563,7 @@ extension IndexStore {
                 let ins = try db.prepare("INSERT INTO ft.pages_fts(rowid, text_bigram) VALUES(?, ?);")
                 let rows = try db.prepare("SELECT rowid, text_norm FROM ft.pages WHERE TRIM(text_norm) != '';")
                 while try rows.step() {
-                    try ins.reset(); try ins.clearBindings()
+                    ins.reset(); ins.clearBindings()
                     try ins.bindInt(1, rows.int(0))
                     try ins.bindText(2, Self.bigramize(rows.text(1)))
                     try ins.run()
@@ -590,7 +595,7 @@ extension IndexStore {
                     for r in rids {
                         withUnsafeBytes(of: r.bigEndian) { blob.append(contentsOf: $0) }
                     }
-                    try insB.reset(); try insB.clearBindings()
+                    insB.reset(); insB.clearBindings()
                     try insB.bindText(1, g)
                     try insB.bindBlob(2, blob)
                     try insB.run()

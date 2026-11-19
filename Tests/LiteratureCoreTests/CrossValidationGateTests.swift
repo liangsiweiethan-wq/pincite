@@ -36,7 +36,7 @@ enum CrossValidationGateSuite {
             try expectTrue(sus == [19])
         })
         t.append(TestDesc(suite: "CrossValidationGate", name: "overFivePercentCircuitBreaks") {
-            var a = (0..<20).map { "page \($0)" }
+            let a = (0..<20).map { "page \($0)" }
             var b = a
             b[18] = "changed eighteen"
             b[19] = "changed nineteen"

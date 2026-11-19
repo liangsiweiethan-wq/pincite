@@ -102,7 +102,7 @@ extension IndexStore {
         let t0 = Date()
         while true {
             // 取一批（rowid ASC；checkpoint 严格推进，死循环不可能）。
-            try sel.reset(); try sel.clearBindings()
+            sel.reset(); sel.clearBindings()
             try sel.bindInt(1, checkpoint)
             var batch: [(Int64, String)] = []
             while try sel.step() {
@@ -117,11 +117,11 @@ extension IndexStore {
                     // 批灌先行：索引持有与即将写入 pages 完全相同的值，使随后
                     // UPDATE 触发的 au 'delete' 永有记录（不撞空索引边界），
                     // 'delete'+重插同值幂等收敛。UPDATE 不能先于批灌。
-                    try wftsIns.reset(); try wftsIns.clearBindings()
+                    wftsIns.reset(); wftsIns.clearBindings()
                     try wftsIns.bindInt(1, rowid)
                     try wftsIns.bindText(2, latin)
                     try wftsIns.run()
-                    try upd.reset(); try upd.clearBindings()
+                    upd.reset(); upd.clearBindings()
                     try upd.bindText(1, latin)
                     try upd.bindInt(2, rowid)
                     try upd.run()

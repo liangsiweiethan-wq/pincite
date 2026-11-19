@@ -146,7 +146,7 @@ struct AIProfilesSettingsView: View {
     }
 
     private func keyStateLabel(_ id: UUID) -> String {
-        (try? store.keyConfigured(account: id.uuidString)) == true ? L10n.aiProfilesKeySet : L10n.aiProfilesKeyMissing
+        store.keyConfigured(account: id.uuidString) ? L10n.aiProfilesKeySet : L10n.aiProfilesKeyMissing
     }
 
     private func addProfile() {

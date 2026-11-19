@@ -164,14 +164,20 @@ enum ReviewSelfCheckSuite {
                     #"{"summary": "补充摘要内容", "relevance_score": 8}"#,   // 补引评分
                     revised,
                 ])
-                var retrievedQuery: String?
+                final class QueryBox: @unchecked Sendable {
+                    private let lock = NSLock()
+                    private var value: String?
+                    func set(_ v: String) { lock.withLock { value = v } }
+                    func get() -> String? { lock.withLock { value } }
+                }
+                let retrievedQuery = QueryBox()
                 let outcome = try await run(transport, confirmation: AIConfirmation(
                     explicit: true, previewID: PreviewIDs.review),
                     retrieve: { query in
-                        retrievedQuery = query
+                        retrievedQuery.set(query)
                         return [hit("b9", page: 4, snippet: "补充证据片段")]
                     })
-                try expectEqual(retrievedQuery, "概念地图 方法", "检索问句来自模型 verdict")
+                try expectEqual(retrievedQuery.get(), "概念地图 方法", "检索问句来自模型 verdict")
                 try expectEqual(transport.callCount, 4, "r1 检查＋补块评分＋改写，＋r2 检查腿")
                 try expectTrue(transport.payloads[1].question.contains("概念地图 方法"),
                                "补块评分问句=模型检索问句（非常量串）")
@@ -392,7 +398,13 @@ enum ReviewSelfCheckSuite {
                     #"{"summary": "补充摘要", "relevance_score": 9}"#,
                     revised,
                 ])
-                var verifiedHits: [SearchHit] = []
+                final class HitsBox: @unchecked Sendable {
+                    private let lock = NSLock()
+                    private var items: [SearchHit] = []
+                    func append(_ hit: SearchHit) { lock.withLock { items.append(hit) } }
+                    func count() -> Int { lock.withLock { items.count } }
+                }
+                let verifiedHits = HitsBox()
                 let outcome = try await run(transport, confirmation: AIConfirmation(
                     explicit: true, previewID: PreviewIDs.review),
                     retrieve: { _ in
@@ -402,7 +414,7 @@ enum ReviewSelfCheckSuite {
                         verifiedHits.append(hit)
                         return hit.bookID == "good"   // 指纹漂移块拒绝
                     })
-                try expectEqual(verifiedHits.count, 2, "两个 hit 都过校验闭包")
+                try expectEqual(verifiedHits.count(), 2, "两个 hit 都过校验闭包")
                 try expectEqual(transport.callCount, 4, "被拒块零评分调用（r1 检查＋1 评分＋改写＋r2 检查腿保守收束）")
                 try expectEqual(outcome.rounds[0].supplementedBlocks, 1)
                 try expectTrue(transport.payloads[1].question.contains("好块"))

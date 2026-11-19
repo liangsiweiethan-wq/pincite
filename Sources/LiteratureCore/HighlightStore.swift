@@ -553,7 +553,7 @@ public final class HighlightStore {
         let update = try? db.prepare("UPDATE user_highlights SET row_uuid = ? WHERE id = ?;")
         for id in ids {
             guard let update else { break }
-            try? update.reset()
+            update.reset()
             try? update.bindText(1, UUID().uuidString)
             try? update.bindInt(2, id)
             try? update.run()

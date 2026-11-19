@@ -174,7 +174,7 @@ enum IncrementalSuite {
                     }
                 }
                 let task = Task { try await engine.run(rootURL: dir) }
-                box.lock.lock(); box.task = task; box.lock.unlock()
+                box.lock.withLock { box.task = task }
                 let summary = try await task.value
                 box.clear()
                 try expectTrue(summary.wasCancelled)

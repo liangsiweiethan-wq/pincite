@@ -963,18 +963,18 @@ final class AppState: ObservableObject {
                     progress: { value in
                         Task { @MainActor in self?.annotationExportProgress = value }
                     })
-                await MainActor.run {
+                await MainActor.run { [weak self] in
                     self?.annotationExportSummary = summary
                     if summary.allFailed {
                         self?.annotationExportError = L10n.annotationExportAllFailed
                     }
                 }
             } catch {
-                await MainActor.run {
+                await MainActor.run { [weak self] in
                     self?.annotationExportError = String(describing: error)
                 }
             }
-            await MainActor.run {
+            await MainActor.run { [weak self] in
                 self?.annotationExportTask = nil
                 self?.annotationExportRunning = false
             }
@@ -1537,11 +1537,11 @@ final class AppState: ObservableObject {
         Task.detached(priority: .userInitiated) { [weak self] in
             let picked: Quote?
             do {
-                if try QuoteExtractor.today(store: s) == nil {
+                if QuoteExtractor.today(store: s) == nil {
                     // 池空才全库抽取（幂等：DELETE 当日 + INSERT 事务）。
                     _ = try QuoteExtractor.extract(from: s)
                 }
-                picked = try QuoteExtractor.today(store: s)
+                picked = QuoteExtractor.today(store: s)
             } catch {
                 await MainActor.run { [weak self] in
                     self?.quoteLoading = false
@@ -1560,8 +1560,9 @@ final class AppState: ObservableObject {
                 guard books[q.bookID] == nil, let row = try? s.book(byID: q.bookID) else { continue }
                 books[q.bookID] = QuoteBookInfo(title: row.title, author: row.author)
             }
+            let snapshotBooks = books
             await MainActor.run { [weak self] in
-                self?.applyDailyQuote(picked: picked, pool: pool, books: books)
+                self?.applyDailyQuote(picked: picked, pool: pool, books: snapshotBooks)
             }
         }
     }
@@ -2086,16 +2087,17 @@ final class AppState: ObservableObject {
         }
         indexing = true
         indexError = nil
-        indexTask = Task {
-            defer { indexing = false }
-            guard let root = access.startAccess() else {
-                await MainActor.run { self.indexing = false }
+        indexTask = Task { [weak self] in
+            guard let self else { return }
+            defer { self.indexing = false }
+            guard let root = self.access.startAccess() else {
+                self.indexing = false
                 return
             }
-            defer { access.stopAccess() }
+            defer { self.access.stopAccess() }
             do {
-                let s = try storeOrOpen()
-                let engine = IndexingEngine(store: s, policy: policy,
+                let s = try self.storeOrOpen()
+                let engine = IndexingEngine(store: s, policy: self.policy,
                                             progress: { [weak self] progress in
                     Task { @MainActor in
                         self?.progress = progress
@@ -2141,16 +2143,17 @@ final class AppState: ObservableObject {
         }
         isScanningToolbooks = true
         toolbookScanMessage = L10n.scanToolbookRunning
-        toolbookScanTask = Task {
-            defer { isScanningToolbooks = false }
-            guard let root = access.startAccess() else {
+        toolbookScanTask = Task { [weak self] in
+            guard let self else { return }
+            defer { self.isScanningToolbooks = false }
+            guard let root = self.access.startAccess() else {
                 self.toolbookScanMessage = L10n.scanToolbookNoRoot
                 return
             }
-            defer { access.stopAccess() }
+            defer { self.access.stopAccess() }
             do {
-                let s = try storeOrOpen()
-                let engine = IndexingEngine(store: s, policy: policy,
+                let s = try self.storeOrOpen()
+                let engine = IndexingEngine(store: s, policy: self.policy,
                                             progress: { [weak self] progress in
                     Task { @MainActor in
                         guard let self else { return }
@@ -2847,9 +2850,10 @@ final class AppState: ObservableObject {
                 }
             }
             // 计划块与预览同源同量；previewID 绑定整条流程（单确认绑整计划）。
+            let snapshotLabels = labels
             let built = try RCSContextBuilder.makePlan(
                 question: question, selections: preview.selections,
-                pageLabel: { bookID, page in labels["\(bookID)#\(page)"] })
+                pageLabel: { bookID, page in snapshotLabels["\(bookID)#\(page)"] })
             rcsPlan = RCSPlan(previewID: preview.id, question: built.question, blocks: built.blocks)
             aiPreview = preview
             aiPreviewKind = .rcs
@@ -3437,7 +3441,7 @@ extension ExclusionConfig {
     }
 }
 
-// MARK: -：前置页屏蔽（extension 追加块）
+// MARK: - 前置页屏蔽（extension 追加块）
 
 extension AppState {
     /// 书级正文起始物理页（nil = 未设置/库未开——不屏蔽，默认关）。

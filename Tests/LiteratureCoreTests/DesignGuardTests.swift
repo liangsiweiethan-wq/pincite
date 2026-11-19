@@ -110,16 +110,16 @@ enum DesignGuardSuite {
                 let ds = try appSources().first { $0.name == "DesignSystem.swift" }
                 let text = try expectNotNil(ds?.text)
                 try expectTrue(text.contains("NSFont(name: \"Songti SC\", size: 15)"),
-                               "Songti SC availability probe must exist (DS-O1)")
+                               "Songti SC availability probe must exist")
                 try expectTrue(text.contains("NSFont.systemFont(ofSize: size)"),
-                               "Songti fallback must be NSFont.systemFont (DS-O1)")
+                               "Songti fallback must be NSFont.systemFont")
             },
 
             TestDesc(suite: "DesignGuard", name: "readingChromeHonorsAccessibilityReduceMotion") {
                 let rc = try appSources().first { $0.name == "ReadingChrome.swift" }
                 let text = try expectNotNil(rc?.text)
                 try expectTrue(text.contains("accessibilityReduceMotion"),
-                               "ReadingChrome must consult accessibilityReduceMotion (§2.4 注记)")
+                               "ReadingChrome must consult accessibilityReduceMotion")
             },
 
             // 安全约束：sha256 表述只称「防损坏/防传输错误」，全仓源码
@@ -242,7 +242,6 @@ enum DesignGuardSuite {
                 for name in guarded {
                     guard let file = sources.first(where: { $0.name == name }) else {
                         try failTest("守卫对象缺失（新 Core 文件应在册）：\(name)")
-                        return
                     }
                     for raw in file.text.components(separatedBy: "\n") {
                         let line = raw.trimmingCharacters(in: .whitespaces)
@@ -487,7 +486,6 @@ enum DesignGuardSuite {
                 for name in guarded {
                     guard let file = sources.first(where: { $0.name == name }) else {
                         try failTest("守卫对象缺失（新文件应在册）：\(name)")
-                        return
                     }
                     for verb in ["POST", "PUT", "PATCH", "DELETE"] {
                         try expectFalse(file.text.contains(verb),
@@ -508,7 +506,6 @@ enum DesignGuardSuite {
                 for name in guarded {
                     guard let file = sources.first(where: { $0.name == name }) else {
                         try failTest("守卫对象缺失（新文件应在册）：\(name)")
-                        return
                     }
                     try expectFalse(file.text.contains("token="),
                                     "\(name) 禁 token 查询串拼接字面（token 只走 Authorization 头）")
@@ -527,7 +524,6 @@ enum DesignGuardSuite {
                 for name in guarded {
                     guard let file = sources.first(where: { $0.name == name }) else {
                         try failTest("守卫对象缺失（新 Core 文件应在册）：\(name)")
-                        return
                     }
                     for raw in file.text.components(separatedBy: "\n") {
                         let trimmed = raw.trimmingCharacters(in: .whitespaces)

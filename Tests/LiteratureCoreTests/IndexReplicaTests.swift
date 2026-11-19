@@ -46,7 +46,6 @@ enum IndexReplicaSuite {
                              volumes: [Volume],
                              contentHashOverride: String? = nil) throws -> (WebDAVIndexManifest, Data) {
         let assembled = volumes.map(\.bytes).reduce(Data(), +)
-        let hash16 = String(Fingerprint.sha256Hex(of: assembled).prefix(16))
         var entries: [WebDAVIndexManifest.FileEntry] = []
         for (i, v) in volumes.enumerated() {
             entries.append(.init(name: v.name,

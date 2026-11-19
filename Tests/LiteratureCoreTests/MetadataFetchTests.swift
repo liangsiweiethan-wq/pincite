@@ -23,10 +23,10 @@ final class StubMetadataLoader: MetadataHTTPLoading, @unchecked Sendable {
     }
 
     func data(for request: URLRequest) async throws -> (Data, URLResponse) {
-        lock.lock()
-        recorded.append(Recorded(url: request.url ?? URL(fileURLWithPath: "/unreachable"),
-                                 userAgent: request.value(forHTTPHeaderField: "User-Agent")))
-        lock.unlock()
+        lock.withLock {
+            recorded.append(Recorded(url: request.url ?? URL(fileURLWithPath: "/unreachable"),
+                                     userAgent: request.value(forHTTPHeaderField: "User-Agent")))
+        }
         guard let url = request.url, let payload = responder(url) else {
             throw URLError(.timedOut)
         }

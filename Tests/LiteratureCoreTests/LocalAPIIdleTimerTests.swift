@@ -38,7 +38,7 @@ enum LocalAPIIdleTimerSuite {
                 let wait = perfLimit(2, relaxed: 6, "idle timer wait")
                 try expectTrue(waitUntil(seconds: wait) { counter.value >= 1 },
                                "interval 到点必须 fire（\(wait)s 内）")
-                Thread.sleep(forTimeInterval: 0.2)
+                try await Task.sleep(nanoseconds: 200_000_000)
                 try expectEqual(counter.value, 1, "一次性语义：不重复 fire")
                 timer.cancel()
             },
@@ -47,11 +47,11 @@ enum LocalAPIIdleTimerSuite {
                 let timer = makeTimer(interval: 0.1, counter: counter)
                 // t=0 reset；t=60/120/180ms 再 reset——无推迟早在 t≈100ms fire。
                 timer.reset()
-                Thread.sleep(forTimeInterval: 0.06)
+                try await Task.sleep(nanoseconds: 60_000_000)
                 timer.reset()
-                Thread.sleep(forTimeInterval: 0.06)
+                try await Task.sleep(nanoseconds: 60_000_000)
                 timer.reset()
-                Thread.sleep(forTimeInterval: 0.06)
+                try await Task.sleep(nanoseconds: 60_000_000)
                 try expectEqual(counter.value, 0,
                                 "连续 reset 必须推迟 fire（t≈180ms 仍不得 fire）")
                 let wait = perfLimit(2, relaxed: 6, "idle timer wait")
@@ -64,7 +64,7 @@ enum LocalAPIIdleTimerSuite {
                 let timer = makeTimer(interval: 0.1, counter: counter)
                 timer.reset()
                 timer.cancel()
-                Thread.sleep(forTimeInterval: 0.35)
+                try await Task.sleep(nanoseconds: 350_000_000)
                 try expectEqual(counter.value, 0, "cancel 后不得 fire")
                 // 未武装 cancel 无害（幂等）。
                 timer.cancel()

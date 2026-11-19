@@ -187,8 +187,8 @@ public struct ExclusionPolicy {
 public enum GlobMatcher {
     public static func matches(path: String, pattern: String) -> Bool {
         // Normalize separators for comparison.
-        var pat = Substring(pattern)
-        var str = Substring(path)
+        let pat = Substring(pattern)
+        let str = Substring(path)
         return match(str, pat)
     }
 

@@ -142,7 +142,7 @@ struct BookDetailView: View {
         burnExportRunning = true
         burnExportMessage = nil
         let highlights = (try? state.highlightStore?.highlightsForBook(book.id, viewSource: nil)) ?? []
-        let items = (highlights ?? []).map { h in
+        let items = highlights.map { h in
             BurnExportSource.Highlight(pageNumber: h.pageNumber,
                                        utf16Start: h.utf16Start,
                                        utf16End: h.utf16End,

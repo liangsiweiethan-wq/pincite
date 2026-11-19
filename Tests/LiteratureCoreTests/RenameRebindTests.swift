@@ -22,6 +22,7 @@ enum RenameRebindSuite {
     // MARK: 夹具
 
     /// 在给定根下建真 PDF 文件并入索引（页面文本直接落库，不再读盘）。
+    @discardableResult
     private static func addBook(_ store: IndexStore, id: String, rootPath: String,
                                  fileName: String, title: String?, author: String?,
                                  pages: [String]) throws -> IndexStore.BookRow {
@@ -342,7 +343,7 @@ enum RenameRebindSuite {
                 try writeFile(old)
                 // addBook 的 realPath 由 rootPath/fileName 拼出，必须与盘上一致；
                 // rel_path 另改成含作者目录的形式（模拟 root 记在库根的书）。
-                var book = try addBook(store, id: "bk-under-root", rootPath: root,
+                let book = try addBook(store, id: "bk-under-root", rootPath: root,
                                        fileName: "Avery Quill/a.pdf",
                                        title: "甲", author: nil, pages: ["甲"])
                 try store.upsertBook(book)
@@ -527,7 +528,7 @@ enum RenameRebindSuite {
                 {"renames":[{"old_path":"/a/旧.pdf","new_path":"/a/新.pdf"},
                             {"old_path":"/b/一.pdf","new_path":"/b/二.pdf"}]}
                 """
-                let data = try expectNotNil(json.data(using: .utf8))
+                _ = try expectNotNil(json.data(using: .utf8))
                 let decoded = try JSONDecoder().decode(RenameReceipt.self,
                                                        from: try expectNotNil(
                                                            #"{"old_path":"/x/y.pdf","new_path":"/x/z.pdf"}"#.data(using: .utf8)))

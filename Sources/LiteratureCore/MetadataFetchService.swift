@@ -228,7 +228,7 @@ public struct MetadataFetchService: Sendable {
             }
         }
 
-        var report = MetadataFetchReport(
+        let report = MetadataFetchReport(
             bookID: bookID, fileName: fileName, timestamp: Date(),
             outcomes: outcomes, appliedFields: applied)
         if let url = reportURL {
@@ -385,20 +385,13 @@ public struct MetadataFetchService: Sendable {
     func runAdapter(_ adapter: MetadataSiteAdapter,
                     request: MetadataLookupRequest) async
     -> (metadata: FetchedMetadata?, outcome: MetadataFetchReport.SourceOutcome) {
-        do {
-            guard let meta = await adapter.lookup(request, loader: loader) else {
-                return (nil, .init(source: adapter.sourceID, requested: true,
-                                   ok: false, appliedFields: [],
-                                   note: "响应不可解析或零命中"))
-            }
-            return (meta, .init(source: adapter.sourceID, requested: true,
-                                ok: true, appliedFields: meta.appliedFields(), note: "查得"))
-        } catch {
-            // 双保险降级处理（契约不抛，理论不可达；可达即如实记源内故障）。
+        guard let meta = await adapter.lookup(request, loader: loader) else {
             return (nil, .init(source: adapter.sourceID, requested: true,
                                ok: false, appliedFields: [],
-                               note: String(describing: error)))
+                               note: "响应不可解析或零命中"))
         }
+        return (meta, .init(source: adapter.sourceID, requested: true,
+                            ok: true, appliedFields: meta.appliedFields(), note: "查得"))
     }
 
     func merge(_ meta: FetchedMetadata?, into merged: inout FetchedMetadata) {

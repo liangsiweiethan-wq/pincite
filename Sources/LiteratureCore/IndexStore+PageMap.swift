@@ -103,7 +103,7 @@ extension IndexStore {
         WHERE book_id = ? AND page_number = ? AND printed_page IS NULL;
         """)
         for pair in pairs {
-            try stmt.reset(); try stmt.clearBindings()
+            stmt.reset(); stmt.clearBindings()
             try stmt.bindInt(1, Int64(pair.printed))
             try stmt.bindText(2, bookID)
             try stmt.bindInt(3, Int64(pair.physical))
@@ -141,7 +141,7 @@ extension IndexStore {
         WHERE book_id = ? AND page_number = ? AND printed_page IS NULL;
         """)
         for pair in pairs {
-            try stmt.reset(); try stmt.clearBindings()
+            stmt.reset(); stmt.clearBindings()
             try stmt.bindInt(1, Int64(pair.printed))
             try stmt.bindText(2, bookID)
             try stmt.bindInt(3, Int64(pair.physical))

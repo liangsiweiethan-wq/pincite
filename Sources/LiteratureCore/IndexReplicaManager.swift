@@ -192,7 +192,7 @@ public final class IndexReplicaManager {
                     let part = try FileHandle(forReadingFrom: configuration.tmpDirectory
                         .appendingPathComponent(file.name, isDirectory: false))
                     defer { try? part.close() }
-                    let chunk = try part.readDataToEndOfFile()
+                    let chunk = part.readDataToEndOfFile()
                     try out.write(contentsOf: chunk)
                 }
             }

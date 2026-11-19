@@ -12,7 +12,7 @@ final class InkOverlayView: UIView {
         backgroundColor = .clear
     }
 
-    required init?(coder: NSCoder) { fatalError("storyboard 不用") }
+    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
 
     /// 更新笔迹与视口后重绘（调用方保证主线程）。
     func reload(strokes: [InkStroke], viewport: InkGeometry.PageViewport) {

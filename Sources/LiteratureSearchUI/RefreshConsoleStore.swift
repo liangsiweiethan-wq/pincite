@@ -6,7 +6,9 @@ import LiteratureCore
 
 // MARK: - 索引刷新控制台 Store（实现；同日合并扩容）
 
-public final class RefreshConsoleStore: ObservableObject {
+/// Main-queue-owned store for the refresh console UI; `@unchecked Sendable`
+/// reflects that all `@Published` mutations are dispatched onto the main queue.
+public final class RefreshConsoleStore: ObservableObject, @unchecked Sendable {
 
     // MARK: - 注入
 
@@ -127,7 +129,7 @@ public final class RefreshConsoleStore: ObservableObject {
         let engine = self.engine
         Task.detached(priority: .userInitiated) { [weak self] in
             let started = await engine.resumeLastBatch()
-            await MainActor.run {
+            await MainActor.run { [weak self] in
                 guard let self else { return }
                 self.message = started
                     ? L10n.indexRefreshResumedLast

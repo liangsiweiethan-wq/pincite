@@ -85,8 +85,7 @@ public enum WebDAVIndexUploader {
 
         let assembledSHA = try Fingerprint.sha256Hex(ofFileAt: tmp)
         let hash16 = String(assembledSHA.prefix(16))
-        let attrs = try fm.attributesOfItem(atPath: tmp.path)
-        let totalSize = (attrs[.size] as? NSNumber)?.int64Value ?? 0
+        _ = try fm.attributesOfItem(atPath: tmp.path)
 
         // 书/页计数取快照副本（基准 = IndexStore.coverageStats：books 全
         // 状态计数、pages 全量；绝不打开 IndexStore 以免触发迁移/写 meta）。

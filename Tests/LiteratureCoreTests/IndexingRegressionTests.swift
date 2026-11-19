@@ -10,6 +10,7 @@ enum IndexingRegressionSuite {
     // MARK: 夹具
 
     /// 手工建书（不生成 PDF；页文本直接落库）。
+    @discardableResult
     static func addBook(_ store: IndexStore, id: String, fileName: String,
                         title: String?, author: String?, pages: [String],
                         pageCount override: Int? = nil) throws -> IndexStore.BookRow {
@@ -164,7 +165,7 @@ enum IndexingRegressionSuite {
                 let store0 = try Fixtures.openStore(in: dir0)
                 try addBook(store0, id: "bk-zero", fileName: "zero-pager.pdf",
                             title: "零页书", author: nil, pages: [], pageCount: 0)
-                var p0 = Process()
+                let p0 = Process()
                 p0.executableURL = bin
                 p0.arguments = ["detect-body-start", "--db", dir0.appendingPathComponent("index.db").path,
                                 "--book", "bk-zero"]
@@ -191,7 +192,7 @@ enum IndexingRegressionSuite {
                 pages.append("正文第一章 真正的起始\n1")
                 try addBook(store4, id: "bk-long", fileName: "long-book.pdf",
                             title: "长书", author: nil, pages: pages)
-                var p4 = Process()
+                let p4 = Process()
                 p4.executableURL = bin
                 p4.arguments = ["detect-body-start", "--db", dir4.appendingPathComponent("index.db").path,
                                 "--book", "bk-long"]

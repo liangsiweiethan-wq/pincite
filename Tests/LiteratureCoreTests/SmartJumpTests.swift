@@ -45,7 +45,6 @@ enum SmartJumpSuite {
                 guard case .externalCitation(let author, let title, let year, let page, _)? =
                         matches.first?.target else {
                     try failTest("expected externalCitation, got \(String(describing: matches.first?.target))")
-                    return
                 }
                 try expectNil(author)
                 try expectEqual(title, "示例学科")
@@ -57,7 +56,6 @@ enum SmartJumpSuite {
                 guard case .externalCitation(let author, let title, let year, let page, _)? =
                         matches.first?.target else {
                     try failTest("expected externalCitation, got \(String(describing: matches.first?.target))")
-                    return
                 }
                 try expectEqual(author, "Quill")
                 try expectNil(title)

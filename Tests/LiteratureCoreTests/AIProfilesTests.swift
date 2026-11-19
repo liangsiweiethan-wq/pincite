@@ -34,7 +34,6 @@ enum AIProfilesSuite {
                     // 默认档案解析：用途未绑定时取默认，密钥从桩读出。
                     guard case .success(let cfg) = store.resolveConfiguration(for: .summarize) else {
                         try failTest("默认档案应可解析")
-                        return
                     }
                     try expectEqual(cfg.apiKey, "sk-a")
                     try expectEqual(cfg.model, "model-a")
@@ -42,14 +41,12 @@ enum AIProfilesSuite {
                     store.bind(.translate, to: b.id)
                     guard case .success(let tcfg) = store.resolveConfiguration(for: .translate) else {
                         try failTest("绑定档案应可解析")
-                        return
                     }
                     try expectEqual(tcfg.apiKey, "sk-b")
                     // 解绑回退默认。
                     store.bind(.translate, to: nil)
                     guard case .success(let back) = store.resolveConfiguration(for: .translate) else {
                         try failTest("解绑后应回退默认")
-                        return
                     }
                     try expectEqual(back.apiKey, "sk-a")
                     // 删除档案：路由清理+密钥删除；translate 回退默认 A。
@@ -61,8 +58,9 @@ enum AIProfilesSuite {
             TestDesc(suite: "AIProfiles", name: "emptyKeyRejectedAndUnknownRoutingDropped") {
                 let dir = Fixtures.makeTempDir("aiprof-guard")
                 defer { Fixtures.cleanup(dir) }
-                let defaults = UserDefaults(suiteName: "aiprof-t2-\(UUID().uuidString)")!
+                let suiteName = "aiprof-t2-\(UUID().uuidString)"
                 try await MainActor.run {
+                    let defaults = UserDefaults(suiteName: suiteName)!
                     let keys = MemoryKeyStorage()
                     let store = AIProfilesStore(directory: dir, defaults: defaults, keyStorage: keys)
                     let a = AIProfile(name: "A", baseURL: "https://a", model: "ma", note: "")

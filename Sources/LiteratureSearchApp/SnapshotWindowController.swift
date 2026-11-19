@@ -8,7 +8,7 @@ import LiteratureSearchUI
 /// AppKit 浮动快照窗管理器（会话内托盘）。线程契约照 ReadingPositionStore
 /// 先例：窗口与数组只在主线程触碰（调用点=UI 动作/MainActor.run），不加
 /// @MainActor 以保持与 AppState 非隔离层的同步调用通道；以断言守护。
-final class SnapshotWindowController: NSObject, NSWindowDelegate {
+final class SnapshotWindowController: NSObject, NSWindowDelegate, @unchecked Sendable {
     /// 本会话开着的快照窗（顺序＝创建序；托盘展示序）。
     private(set) var windows: [NSWindow] = []
     /// 窗口标题镜像（与 windows 同序；AppState 据此发布托盘列表）。
@@ -37,7 +37,7 @@ final class SnapshotWindowController: NSObject, NSWindowDelegate {
             // 后台段：只碰入参 PDFPage 与几何，不碰 self 窗口状态。
             let thumbnail = page.thumbnail(of: pagePixel, for: .cropBox)
             guard let full = thumbnail.cgImage(forProposedRect: nil, context: nil, hints: nil) else {
-                await MainActor.run {
+                await MainActor.run { [weak self] in
                     self?.onError?(L10n.snapshotRenderFailed)
                 }
                 return
@@ -52,14 +52,14 @@ final class SnapshotWindowController: NSObject, NSWindowDelegate {
                 CGRect(x: 0, y: 0, width: full.width, height: full.height))
             guard !clamped.isNull, clamped.width >= 1, clamped.height >= 1,
                   let cropped = full.cropping(to: clamped) else {
-                await MainActor.run {
+                await MainActor.run { [weak self] in
                     self?.onError?(L10n.snapshotRenderFailed)
                 }
                 return
             }
             let image = NSImage(cgImage: cropped,
                                 size: CGSize(width: targetSize.width, height: targetSize.height))
-            await MainActor.run {
+            await MainActor.run { [weak self] in
                 self?.presentWindow(image: image, title: title)
             }
         }

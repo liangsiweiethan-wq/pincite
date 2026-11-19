@@ -1526,7 +1526,7 @@ enum RefreshConsoleMergeSuite {
                     RefreshJournal.Writer.rollbackFailureHook = nil
                     RefreshJournal.Writer.opFailureHook = nil
                 }
-                func injectedOpError(_ step: String) -> any Error {
+                @Sendable func injectedOpError(_ step: String) -> any Error {
                     NSError(domain: "InjectedOpFailure", code: 1,
                             userInfo: [NSLocalizedDescriptionKey: "注入的操作级失败（\(step)）"])
                 }

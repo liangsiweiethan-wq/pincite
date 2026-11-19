@@ -30,7 +30,7 @@ enum PinyinBookIndexSuite {
                 IndexSearchSuite.buildLibrary(dir)
                 let store = try Fixtures.openStore(in: dir)
                 _ = try await IndexingEngine(store: store, policy: ExclusionPolicy()).run(rootURL: dir)
-                let first = try store.backfillPinyinIfNeeded()
+                _ = try store.backfillPinyinIfNeeded()
                 let second = try store.backfillPinyinIfNeeded()
                 try expectEqual(second, 0, "backfill 幂等：第二次无缺行")
                 // upsertBook 现于落库事务内同步写
