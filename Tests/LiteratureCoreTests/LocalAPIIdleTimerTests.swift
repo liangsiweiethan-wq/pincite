@@ -44,16 +44,18 @@ enum LocalAPIIdleTimerSuite {
             },
             TestDesc(suite: "LocalAPIIdleTimer", name: "resetPostponesFire") {
                 let counter = Counter()
-                let timer = makeTimer(interval: 0.1, counter: counter)
-                // t=0 reset；t=60/120/180ms 再 reset——无推迟早在 t≈100ms fire。
+                let interval = perfLimit(0.1, relaxed: 0.8, "idle timer reset interval")
+                let stepNs = UInt64((interval * 0.45) * 1_000_000_000)
+                let timer = makeTimer(interval: interval, counter: counter)
+                // 连续三次按 0.45×interval 重置：总跨度 1.35×interval，无推迟必提前 fire。
                 timer.reset()
-                try await Task.sleep(nanoseconds: 60_000_000)
+                try await Task.sleep(nanoseconds: stepNs)
                 timer.reset()
-                try await Task.sleep(nanoseconds: 60_000_000)
+                try await Task.sleep(nanoseconds: stepNs)
                 timer.reset()
-                try await Task.sleep(nanoseconds: 60_000_000)
+                try await Task.sleep(nanoseconds: stepNs)
                 try expectEqual(counter.value, 0,
-                                "连续 reset 必须推迟 fire（t≈180ms 仍不得 fire）")
+                                "连续 reset 必须推迟 fire（最后一次 reset 前不得触发）")
                 let wait = perfLimit(2, relaxed: 6, "idle timer wait")
                 try expectTrue(waitUntil(seconds: wait) { counter.value >= 1 },
                                "最后一次 reset 起 interval 到点应 fire")

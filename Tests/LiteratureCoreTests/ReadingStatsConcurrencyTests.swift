@@ -47,7 +47,7 @@ enum ReadingStatsConcurrencySuite {
                 let dir = Fixtures.makeTempDir("f12-concurrent-writes")
                 defer { Fixtures.cleanup(dir) }
                 let store = try Fixtures.openStore(in: dir)
-                let stats = ReadingStatsStore(indexStore: store)
+                let stats = ReadingStatsStore(indexStore: store, timeZone: fixedZone)
                 let n = 400
                 // 固定 day（东八区 07:20 起）与 1 秒步长（cap=5 分钟
                 // 以内，每步都入账）：book a 记「翻页 400 次＋400 页」——分钟净额
@@ -120,7 +120,7 @@ enum ReadingStatsConcurrencySuite {
                 let dir = Fixtures.makeTempDir("f12-interleaved")
                 defer { Fixtures.cleanup(dir) }
                 let store = try Fixtures.openStore(in: dir)
-                let stats = ReadingStatsStore(indexStore: store)
+                let stats = ReadingStatsStore(indexStore: store, timeZone: fixedZone)
                 let n = 300
                 let t0 = 1_767_223_200.0
                 let books = ["f12-x", "f12-y"]
@@ -189,8 +189,8 @@ enum ReadingStatsConcurrencySuite {
                 let dir = Fixtures.makeTempDir("f12-two-instances")
                 defer { Fixtures.cleanup(dir) }
                 let store = try Fixtures.openStore(in: dir)
-                let s1 = ReadingStatsStore(indexStore: store)
-                let s2 = ReadingStatsStore(indexStore: store)
+                let s1 = ReadingStatsStore(indexStore: store, timeZone: fixedZone)
+                let s2 = ReadingStatsStore(indexStore: store, timeZone: fixedZone)
                 let n = 250
                 let t0 = 1_767_223_200.0
                 let workers: [() throws -> Void] = [
@@ -218,7 +218,7 @@ enum ReadingStatsConcurrencySuite {
                 let rw = try Fixtures.openStore(in: dir)
                 try rw.upsertBook(ReadingStatsSuite.makeBook("stats-ro", title: "旧书", author: nil))
                 let replica = try Fixtures.openStore(in: dir, options: .init(readOnlyReplica: true))
-                let stats = ReadingStatsStore(indexStore: replica)
+                let stats = ReadingStatsStore(indexStore: replica, timeZone: fixedZone)
                 let n = 100
                 let t0 = 1_767_223_200.0
                 let workers: [() throws -> Void] = [

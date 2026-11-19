@@ -16,13 +16,16 @@ public final class ReadingStatsStore {
     private let lock = NSLock()
     /// 只读副本门（iOS WebDAV 副本打开时统计静默跳过）。
     private let isReadOnly: Bool
+    /// 日统计落键所用时区（默认当前系统时区；测试可显式注入固定时区）。
+    private let timeZone: TimeZone
     /// 事件锚点（bookID → 上一事件时刻，秒）。
     private var anchors: [String: TimeInterval] = [:]
 
-    public init(indexStore: IndexStore) {
+    public init(indexStore: IndexStore, timeZone: TimeZone = .current) {
         self.db = indexStore.db
         self.indexStore = indexStore
         self.isReadOnly = indexStore.isReadOnlyReplica
+        self.timeZone = timeZone
     }
 
     // MARK: 写路径
@@ -62,7 +65,7 @@ public final class ReadingStatsStore {
         if let page = pageTurn, page < 1 { return }   // 页 0 = 未落地，不记
         let credit = Self.accumulate(previous: anchors[bookID], now: now, capMinutes: capMinutes)
         anchors[bookID] = now
-        let day = Self.dayKey(for: Date(timeIntervalSince1970: now))
+        let day = Self.dayKey(for: Date(timeIntervalSince1970: now), timeZone: timeZone)
         let pagesDelta = pageTurn != nil ? 1 : 0
         // 纯锚点事件（无可入账分钟且非翻页）不落行——0/0 假行
         //会让 dailyTotals 非 nil、每日卡显「0 分钟，翻页 0 次」，破坏

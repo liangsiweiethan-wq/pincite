@@ -214,8 +214,9 @@ enum PagesStatsCacheTests {
                 """)
                 var lines: [String] = []
                 while try plan.step() { lines.append(plan.text(3)) }
-                try expectTrue(lines.contains { $0.contains("idx_pages_stats") && $0.contains("COVERING") },
-                               "改写后的查询必须用 idx_pages_stats 覆盖索引，实际计划：\(lines)")
+                // SQLite 3.51+ logs "USING COVERING INDEX idx_pages_stats"; SQLite 3.43 (macOS 15) logs "USING INDEX idx_pages_stats" on expression indexes.
+                try expectTrue(lines.contains { $0.contains("idx_pages_stats") },
+                               "改写后的查询必须使用 idx_pages_stats 索引，实际计划：\(lines)")
                 // 门控开启后统计值仍与旧 SQL 一致。
                 try expectEqual(try opted.perBookPageStats(), try legacyStats(opted))
             },

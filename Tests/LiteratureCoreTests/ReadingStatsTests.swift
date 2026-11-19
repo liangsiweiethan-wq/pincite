@@ -49,7 +49,7 @@ enum ReadingStatsSuite {
                 let dir = Fixtures.makeTempDir("stats-crossday")
                 defer { Fixtures.cleanup(dir) }
                 let store = try Fixtures.openStore(in: dir)
-                let stats = ReadingStatsStore(indexStore: store)
+                let stats = ReadingStatsStore(indexStore: store, timeZone: fixedZone)
                 // day A （东八区 07:20）：首事件＝锚点不落行
                 // 纯锚点事件 ＋ 3 分钟后翻页（+3 分钟）。
                 let dayA = Date(timeIntervalSince1970: 1_767_223_200) // 20:00Z = 20+08
@@ -84,7 +84,7 @@ enum ReadingStatsSuite {
                 let dir = Fixtures.makeTempDir("stats-pageturn")
                 defer { Fixtures.cleanup(dir) }
                 let store = try Fixtures.openStore(in: dir)
-                let stats = ReadingStatsStore(indexStore: store)
+                let stats = ReadingStatsStore(indexStore: store, timeZone: fixedZone)
                 let t0 = 1_767_223_200.0
                 try stats.recordPageTurn(bookID: "b1", page: 1, now: t0)
                 try stats.recordPageTurn(bookID: "b1", page: 2, now: t0 + 120) // 2 分钟
@@ -101,7 +101,7 @@ enum ReadingStatsSuite {
                 let dir = Fixtures.makeTempDir("stats-anchor-empty")
                 defer { Fixtures.cleanup(dir) }
                 let store = try Fixtures.openStore(in: dir)
-                let stats = ReadingStatsStore(indexStore: store)
+                let stats = ReadingStatsStore(indexStore: store, timeZone: fixedZone)
                 let t0 = 1_767_223_200.0
                 let day = ReadingStatsStore.dayKey(for: Date(timeIntervalSince1970: t0),
                                                    timeZone: fixedZone)
@@ -126,7 +126,7 @@ enum ReadingStatsSuite {
                 let dir = Fixtures.makeTempDir("stats-anchor-credit")
                 defer { Fixtures.cleanup(dir) }
                 let store = try Fixtures.openStore(in: dir)
-                let stats = ReadingStatsStore(indexStore: store)
+                let stats = ReadingStatsStore(indexStore: store, timeZone: fixedZone)
                 let t0 = 1_767_223_200.0
                 let day = ReadingStatsStore.dayKey(for: Date(timeIntervalSince1970: t0),
                                                    timeZone: fixedZone)
@@ -207,7 +207,7 @@ enum ReadingStatsSuite {
                 try rw.upsertBook(makeBook("b1", title: "旧书", author: nil))
                 let replica = try Fixtures.openStore(in: dir,
                                                      options: .init(readOnlyReplica: true))
-                let stats = ReadingStatsStore(indexStore: replica)
+                let stats = ReadingStatsStore(indexStore: replica, timeZone: fixedZone)
                 // 只读句柄上一切写 no-op：不抛错、零行。
                 try stats.recordPageTurn(bookID: "b1", page: 1, now: 1_000)
                 try stats.recordActiveEvent(bookID: "b1", now: 1_100)
