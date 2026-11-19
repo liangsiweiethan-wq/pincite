@@ -57,9 +57,9 @@ final class SnapshotWindowController: NSObject, NSWindowDelegate, @unchecked Sen
                 }
                 return
             }
-            let image = NSImage(cgImage: cropped,
-                                size: CGSize(width: targetSize.width, height: targetSize.height))
+            let targetPixelSize = CGSize(width: targetSize.width, height: targetSize.height)
             await MainActor.run { [weak self] in
+                let image = NSImage(cgImage: cropped, size: targetPixelSize)
                 self?.presentWindow(image: image, title: title)
             }
         }
