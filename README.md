@@ -7,10 +7,11 @@
 **Pinpoint every quote to its exact PDF page — locally, verifiably, with zero dependencies.**
 
 [![Release](https://img.shields.io/badge/release-v0.3.0-A15C1F?style=flat-square)](https://github.com/liangsiweiethan-wq/pincite/releases)
+[![CI](https://github.com/liangsiweiethan-wq/pincite/actions/workflows/ci.yml/badge.svg)](https://github.com/liangsiweiethan-wq/pincite/actions/workflows/ci.yml)
 [![Platform](https://img.shields.io/badge/macOS-13%2B-1E1B16?style=flat-square)](https://github.com/liangsiweiethan-wq/pincite)
 [![Swift](https://img.shields.io/badge/Swift-6-F05138?style=flat-square)](https://swift.org)
 [![Dependencies](https://img.shields.io/badge/dependencies-0-2E7D32?style=flat-square)](#architecture)
-[![Tests](https://img.shields.io/badge/synthetic_tests-1%2C124%2B_passing-2E7D32?style=flat-square)](#build-and-test)
+[![Tests](https://img.shields.io/badge/synthetic_tests-1%2C130_passing-2E7D32?style=flat-square)](#build-and-test)
 [![License: MIT](https://img.shields.io/badge/license-MIT-6F675A?style=flat-square)](LICENSE)
 
 [中文版](README.zh-CN.md) · [Download macOS DMG](https://github.com/liangsiweiethan-wq/pincite/releases) · [Architecture](docs/ARCHITECTURE.md) · [Launch Kit](docs/LAUNCH-KIT.md)
@@ -103,7 +104,7 @@ flowchart TD
 | `LiteratureSearchUI` | `Sources/LiteratureSearchUI` | Framework-agnostic presentation logic: 21 citation formatters, hit routing, quote normalization, localization (`L10n`), view stores |
 | `LiteratureSearchApp` | `Sources/LiteratureSearchApp` | Native macOS SwiftUI + AppKit desktop app, PDFKit reader with bounds highlighting, loopback HTTP host |
 | `literaturesearch-cli` | `Sources/literaturesearch-cli` | Explicit-only operator CLI: `probe`, `index`, `search`, `pdf-info`, `genpdf`, `mcp-serve`, `rebind-renames`, `backfill-latin` |
-| `LiteratureTestKit` | `Tests/` | 1,124+ synthetic test cases across 128 suites (including 33 architectural & security `DesignGuard` assertions) |
+| `LiteratureTestKit` | `Tests/` | 1,130 synthetic test cases across 128 suites (including 33 architectural & security `DesignGuard` assertions) |
 | Companion targets | `app/` | Deterministically generated Xcode project (`Scripts/generate-project.swift`) for macOS app, WidgetKit, iOS/iPadOS, watchOS, and Share Extension |
 
 > **Note on internal identifiers:** To preserve 100% compatibility with existing index databases, URL schemes (`literaturesearch://`), and test guards, Swift modules (`LiteratureCore`, `LiteratureSearchUI`, `LiteratureSearchApp`, `literaturesearch-cli`) retain their original `Literature*` target names while user-facing branding uses **PinCite**.
@@ -117,12 +118,12 @@ Deep dives: [Architecture](docs/ARCHITECTURE.md) · [Database Schema](docs/SCHEM
 | **Read-only source library** | PinCite never modifies user PDFs. Annotated export writes new files; WebDAV sync rejects filename collisions without overwriting local originals. |
 | **Physical page is the single source of truth** | Hits, highlights, quotes, and reading progress bind to 1-based physical pages; `/PageLabels` and printed numbers are read-only projections. |
 | **Fail closed, fail visibly** | Invalid exclusion rules block indexing; mismatched SHA-256 fingerprints reject stale jumps; unknown page numbers display as unknown; empty hits explain why. |
-| **Zero-warning strictness** | Both production modules and all 1,124+ test cases build cleanly with `-Xswiftc -warnings-as-errors`. |
+| **Zero-warning strictness** | Both production modules and all 1,130 test cases build cleanly with `-Xswiftc -warnings-as-errors`. |
 
 ## Build and test
 
 ```bash
-# Run the complete preflight gate (privacy check, project regen, L10n check, zero-warning build, 1,124+ tests)
+# Run the complete preflight gate (privacy check, project regen, L10n check, zero-warning build, 1,130 tests)
 Scripts/preflight.sh
 
 # Or run individual commands:
@@ -136,7 +137,7 @@ Scripts/package-release.sh 0.3.0
 
 ## Status and limitations
 
-- **macOS app, CLI, and core:** Production-ready and covered by 1,124+ synthetic tests.
+- **macOS app, CLI, and core:** Production-ready and covered by 1,130 synthetic tests.
 - **macOS UI language:** Currently Simplified Chinese; full English/Chinese runtime toggle is scheduled for `v0.4.0`. The CLI, docs, and README are English-first / bilingual.
 - **Companion targets (iOS, watchOS, Widgets, Share Extension):** Build cleanly for simulators in CI (`CODE_SIGNING_ALLOWED=NO`). Physical device deployment requires configuring your own `DEVELOPMENT_TEAM` and App Group IDs in [Scripts/generate-project.swift](Scripts/generate-project.swift) and entitlements.
 - **Ad-hoc macOS binary:** Release DMGs are ad-hoc signed without Apple notarization until an Apple Developer ID is configured.
