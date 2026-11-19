@@ -1,0 +1,34 @@
+name: Bug Report
+description: Report a reproducible issue in PinCite (macOS / CLI / Core / Companions)
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for reporting an issue. Please avoid uploading copyrighted PDFs, private paths, or API keys.
+  - type: textarea
+    id: summary
+    attributes:
+      label: What happened?
+      description: Clear description of the bug vs. expected behaviour.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce (prefer synthetic sample PDF via `genpdf`)
+      placeholder: |
+        1. Create a sample PDF via `literaturesearch-cli genpdf ...`
+        2. Run ...
+        3. Observe error: ...
+    validations:
+      required: true
+  - type: input
+    id: env
+    attributes:
+      label: Environment
+      description: macOS version, Apple Silicon / Intel, PinCite version or commit SHA.
+      placeholder: "macOS 15.x (arm64), PinCite v0.3.0"
+    validations:
+      required: true

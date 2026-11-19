@@ -17,7 +17,8 @@ ALLOWLIST = ROOT / "Scripts" / "privacy-allowlist.txt"
 PUBLIC_DOMAINS = (
     "example.com", "example.org", "example.net", "example", "invalid",
     "apple.com", "w3.org", "crossref.org", "arxiv.org", "dblp.org",
-    "semanticscholar.org", "openlibrary.org",
+    "semanticscholar.org", "openlibrary.org", "github.com", "img.shields.io",
+    "swift.org",
 )
 # Private denylists are NOT part of the repository. A maintainer may keep a JSON
 # file {"internal": [[len, b64digest], ...], "forbidden": [[len, hexdigest], ...]}

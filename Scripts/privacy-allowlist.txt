@@ -34,7 +34,6 @@ Tests/LiteratureCoreTests/CitationPurityTests.swift	Chinese name form	甲乙著	
 Tests/LiteratureCoreTests/CitationPurityTests.swift	English name form	Treatise, Example Press	Fictional citation fixture
 Tests/LiteratureCoreTests/ReadingStatsTests.swift	non-fictional book/journal title	a.pdf	Generic temporary PDF fixture
 Tests/LiteratureCoreTests/FileNameNormalizationTests.swift	domain	another.org	Fictional domain fixture
-Sources/LiteratureSearchUI/AIProfilesStore.swift	domain	com.example.literaturesearch.ai	Documented example Keychain service identifier
 Tests/LiteratureCoreTests/AITests.swift	domain	api.example.test	Fictional service endpoint
 Tests/LiteratureCoreTests/RegressionTests.swift	domain	api.example.test	Fictional service endpoint
 Tests/LiteratureCoreTests/SyncWatchTests.swift	secret	sk-synthetic-key-do-not-export-4242	Template placeholder, not a credential
@@ -44,5 +43,3 @@ Tests/LiteratureCoreTests/Fixtures/FictionalCorpus.swift	64-character hexadecima
 Tests/LiteratureCoreTests/Fixtures/FictionalCorpus.swift	64-character hexadecimal string	deadbeef00000000000000000000000000000000000000000000000000000001	Synthetic fixture digest
 Tests/LiteratureCoreTests/Fixtures/FictionalCorpus.swift	64-character hexadecimal string	0000000000000000000000000000000000000000000000000000000000000003	Synthetic fixture digest
 Tests/LiteratureCoreTests/Fixtures/FictionalCorpus.swift	64-character hexadecimal string	deadbeef00000000000000000000000000000000000000000000000000000002	Synthetic fixture digest
-README.md	domain	https://github.com	Public project release page
-README.zh-CN.md	domain	https://github.com	Public project release page

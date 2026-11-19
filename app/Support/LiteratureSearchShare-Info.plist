@@ -13,13 +13,13 @@
 	<key>CFBundleName</key>
 	<string>LiteratureSearchShare</string>
 	<key>CFBundleDisplayName</key>
-	<string>收录到文献检索</string>
+	<string>Save to PinCite</string>
 	<key>CFBundlePackageType</key>
 	<string>XPC!</string>
 	<key>CFBundleShortVersionString</key>
-	<string>0.1.0</string>
+	<string>$(MARKETING_VERSION)</string>
 	<key>CFBundleVersion</key>
-	<string>1</string>
+	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>NSExtension</key>
 	<dict>
 		<key>NSExtensionPointIdentifier</key>

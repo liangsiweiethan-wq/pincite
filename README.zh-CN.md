@@ -1,184 +1,154 @@
-# LiteratureSearch
+<div align="center">
 
-本地优先的 macOS 文献检索工具：在中英文 PDF 集合中定位原文段落，并回到它所在的页。
+<img src="docs/assets/hero.svg" alt="PinCite（页锚）— 本地优先的 macOS 原生 PDF 引文精查工具" width="100%"/>
 
-[English](README.md) · [下载与发布记录](https://github.com/liangsiweiethan-wq/literature-search/releases) · MIT 许可
+# PinCite（页锚）
 
-- **页级全文检索**：中文与西文 PDF 通用，支持拼音书名检索。
-- **回到原件**：每条结果先核对文件指纹，再打开原 PDF 并定位到准确的页与文字区间。
-- **可直接引用**：21 种引注体例，页码处理保守，支持 BibTeX 与带批注 PDF 导出。
-- **默认私密**：书库只读，索引留在本机，网络与 AI 功能需主动开启。
+**把每一句引文精准锚定回 PDF 原页 —— 本地优先、指纹验真、零三方依赖。**
 
-## 首发预览
+[![Release](https://img.shields.io/badge/release-v0.3.0-A15C1F?style=flat-square)](https://github.com/liangsiweiethan-wq/pincite/releases)
+[![Platform](https://img.shields.io/badge/macOS-13%2B-1E1B16?style=flat-square)](https://github.com/liangsiweiethan-wq/pincite)
+[![Swift](https://img.shields.io/badge/Swift-6-F05138?style=flat-square)](https://swift.org)
+[![Dependencies](https://img.shields.io/badge/依赖数-0-2E7D32?style=flat-square)](#软件架构)
+[![Tests](https://img.shields.io/badge/合成测试-1%2C124%2B_全过-2E7D32?style=flat-square)](#构建与测试)
+[![License: MIT](https://img.shields.io/badge/license-MIT-6F675A?style=flat-square)](LICENSE)
 
-想先看一遍完整流程，可以下载中文图文指引和三页样例。搜索「灯光校准」，展开书目 `试点记录.pdf`，点击命中条目即可打开原文第 2 页。这个流程已在 Apple Silicon Mac 上从磁盘映像安装并实测通过。
+[English](README.md) · [下载 macOS 安装包](https://github.com/liangsiweiethan-wq/pincite/releases) · [架构设计](docs/ARCHITECTURE.md) · [宣发素材包](docs/LAUNCH-KIT.md)
 
-GitHub Releases 中的 DMG 是本机验收包，采用临时签名，尚未通过 Apple 公证。具备 Xcode 的试用者可以按下方步骤从源码运行应用。
+</div>
 
-## 目录
+---
 
-- [快速上手](#快速上手)
-- [为什么做](#为什么做)
-- [功能](#功能)
-- [软件结构](#软件结构)
-- [设计原则](#设计原则)
-- [构建与测试](#构建与测试)
-- [状态与限制](#状态与限制)
-- [路线图](#路线图)
-- [贡献与许可](#贡献与许可)
+**PinCite（页锚）**（原名 *LiteratureSearch*）是一款本地优先的 macOS 学术文献检索与核对工具：在成百上千份中英文 PDF 中按页精查原文段落，点击命中结果直接回到原 PDF 的精确页码与 UTF-16 字符区间——书库严格只读，页码绝不猜测。
+
+## 为什么做 PinCite？
+
+人文社科、法学、哲学研究以及长文写作极度依赖**逐字核对与准确页码**。现有工具在关键环节都会失灵：
+
+| 核心能力 | PinCite（页锚） | Spotlight / 预览 | Zotero 等文献管理 | 云端 AI / PDF RAG |
+|---|:---:|:---:|:---:|:---:|
+| **跳回 PDF 原页精确 UTF-16 高亮选区** | 支持 | 仅大致滚动 | 侧重题录元数据 | 分块丢失精确位置 |
+| **物理页 / `/PageLabels` / 印刷页严格分离** | **三轨严格分离** | 混用甚至伪造页码 | 需手工记录 | 幻觉与错页频发 |
+| **回跳前 SHA-256 指纹验真** | **Fail-Closed 拒跳** | 无校验 | 仅凭路径 | 无本地文件强绑定 |
+| **书库只读、100% 离线、零数据出机** | **是（零外部依赖）** | 本地 | 本地 + 同步 | 需上传文件或调用 API |
+| **中文子串 + 西文词级 + 拼音书名检索** | **全支持** | 基础系统索引 | 仅标题/元数据 | 语义近似常漏精确词 |
+| **内置 21 种引注体例 + MCP 智能体接口** | **原生内置** | 无 | 依赖外置插件 | 依赖提示词约束 |
+
+## 核心亮点
+
+- **中英混合页级全文检索** — 结合 SQLite FTS5 Trigram、Unicode61 词级投影（`pages_wfts`）与短词精确回退，同时支持拼音与简繁书名定位。
+- **指纹验证的安全回跳** — 每条命中都携带原文件 SHA-256 指纹与原文 UTF-16 区间。跳转前重新核对文件指纹，避免文件被替换或修改后悄悄跳到错误页码。
+- **页码三轨基准，宁缺毋滥** — 严格区分**物理页**（1 起 PDF 页序，恒知）、**PDF `/PageLabels`**（仅文档结构显式声明时采信）与**印刷页**（仅来自用户导入的 CSV 映射表）。未知就是未知，绝不猜测。
+- **笔记主权与 21 种引注体例** — 高亮、下划线、页面笔记、笔迹、智能合集与每日一句全部存在软件自有库，绝不改写原版 PDF；支持中文法学期刊、GB/T 7714-2015、Bluebook、OSCOLA、Chicago 18、APA 7、MLA 9 等 21 种体例及 BibTeX、带批注 PDF 副本导出。
+- **为工作流与 Agent 就绪（默认关闭，按需启用）** — 内置 **stdio MCP 服务**（`literaturesearch-cli mcp-serve`）、可选本机环回 `127.0.0.1` 只读 HTTP API、桌面 Widget 与 iOS/watchOS 伴生端工程。
+- **默认彻底私密** — 零第三方 SwiftPM 依赖，无任何遥测。在线元数据补全（Crossref/arXiv/DBLP/Semantic Scholar/Open Library）、WebDAV 同步、AI 辅助均默认关闭且逐次确认。
 
 ## 快速上手
 
-源码构建要求 macOS 13+、Xcode 16+（Swift 6）。现有版本在 macOS 26.6.2 上完成安装与检索流程验收。
+### 方式一：直接安装 macOS DMG（无需 Xcode）
+
+1. 从 [GitHub Releases](https://github.com/liangsiweiethan-wq/pincite/releases) 下载 `PinCite-0.3.0-macOS-adhoc.dmg`。
+2. 将 `LiteratureSearch.app`（桌面显示名为 **PinCite**）拖入 `/Applications`（应用程序）。
+3. 因当前预览版采用本机临时签名（ad-hoc）、尚未经过 Apple 公证，首次打开前请在终端执行一次清除隔离属性（或右键 → 打开）：
+   ```bash
+   xattr -cr /Applications/LiteratureSearch.app
+   ```
+4. 镜像内附带 3 页双语合成测试样书 `PinCite-QuickStart.pdf`，导入后即可检索 `pinpoint` 或 `页码三分离` 体验完整回跳。
+
+### 方式二：从源码 30 秒构建运行
+
+要求 **macOS 13+** 与 **Xcode 16+**（Swift 6）。
 
 ```bash
-# 1. 构建（测试与样例生成都会用到 CLI 二进制）。
+# 1. 构建核心库、CLI 与 macOS 应用
 swift build
 
-# 2. 生成合成样例书库——不需要任何真实书籍。
+# 2. 生成纯合成离线样例书库（无需任何真实电子书）
 mkdir -p sample-library
 swift run literaturesearch-cli genpdf --out sample-library/sample.pdf \
-  --page "Sample page one" --page "Sample page two" --page "Sample page three"
+  --page "Sample page one: archival foundation" \
+  --page "Sample page two: pinpoint citation anchor" \
+  --page "Sample page three: bibliography check"
 
-# 3. 启动应用，选择 ./sample-library 作为书库，建立索引后检索。
+# 3. 启动 macOS 应用，选择 ./sample-library 建库并检索 "pinpoint"
 swift run LiteratureSearchApp
 ```
 
-`genpdf` 为每个 `--page` 参数生成一页，内容就是传入的文字；整个流程离线完成，不需要真实书籍。
-
-也可以在终端为同一个书库建立单独的索引，检索第 2 页的文字。
+也可以直接在终端建立索引并运行页级检索：
 
 ```bash
 swift run literaturesearch-cli index sample-library --db .build/sample-index.db
-swift run literaturesearch-cli search "page two" --db .build/sample-index.db
+swift run literaturesearch-cli search "pinpoint" --db .build/sample-index.db
 ```
 
-## 为什么做
+## 软件架构
 
-人文社科研究依赖精确引证：一句话要引得对，出处要落到可核对的版次与页码——而材料往往散在几百上千份、跨语言与字符集的 PDF 里。
-
-- Spotlight 和 PDF 阅读器能找到词，却不保留可靠的页码坐标，不区分印刷页与 PDF 物理页，书库变动后结果还可能指向另一份文件。
-- 文献管理器围绕书目记录组织，不以页级全文检索为中心。
-- 云端检索要求上传可能受版权、禁运或保密约束的材料。
-
-LiteratureSearch 把本地 PDF 书库当作事实源：就地索引，返回页级证据，索引与查询都留在本机。
-
-## 功能
-
-**检索**——中文子串、西文词、多词 AND 与拼音书名检索；页级片段可回跳到原文区间；排除规则在读取内容前生效，打开结果时再次复查。
-
-**页码语义**——三个概念分开：物理页（恒知）、PDF `/PageLabels`（仅在文档声明时采信）、印刷页（仅来自用户提供的 CSV 页码表）。无效行拒收并报告；印刷页不覆盖已知值。
-
-**阅读与笔记**——高亮、下划线、页面笔记、收藏、智能合集、阅读历史与每日一句。笔记存在应用数据库里，绝不写入原 PDF；带批注导出总是生成新文件。
-
-**引注与导出**——21 种体例，包括中文法学期刊体例、GB/T 7714-2015、Bluebook、OSCOLA、Chicago 18、APA 7、MLA 9、Harvard、Vancouver、IEEE、AGLC、McGill、AMA。缺失的元数据直接省略，绝不编造。
-
-**集成**——WidgetKit 小组件与 `literaturesearch://` 深链；可选的只读 HTTP API，只绑定 `127.0.0.1`，每次启动生成新 token（默认关闭）；供本机智能体使用的 stdio MCP 桥；可选的 iOS/iPadOS 与 watchOS 伴生端。
-
-**可选扩展**——按用户编写的清单导入 OCR 文本层（两侧 PDF 都做指纹）；从 Crossref、arXiv、DBLP、Semantic Scholar、Open Library 在线补全元数据（默认关闭）；按可配置的文件夹名划分内容类别（默认未配置任何文件夹，因此不做分类）；可选的单向 WebDAV 下载，把其他设备上的新 PDF 拉进书库。
-
-## 软件结构
-
-### 模块
+PinCite 采用严格单向分层架构（`App → UI → Core`、`CLI → Core`），**零第三方 Swift 包依赖**，全部能力基于苹果系统框架（`Foundation`、`PDFKit`、`CoreText`、`SQLite3`、`CryptoKit`、`SwiftUI`、`Network`）构建。
 
 ```mermaid
 flowchart TD
-  App["LiteratureSearchApp<br/>macOS 应用（SwiftUI · AppKit · PDFKit）"] --> UI["LiteratureSearchUI<br/>引注 · 展示逻辑"]
+  App["LiteratureSearchApp<br/>macOS 桌面端（SwiftUI · AppKit · PDFKit）"] --> UI["LiteratureSearchUI<br/>引注格式化 · 路由 · L10n"]
   App --> Core
-  UI --> Core["LiteratureCore<br/>索引 · 检索 · PDF · 安全"]
-  CLI["literaturesearch-cli<br/>运维 CLI · MCP 桥"] --> Core
-  Xcode["app/（Xcode）<br/>Widget · iOS · watchOS · 分享"] -.-> Core
-  Core --> DB[("SQLite FTS5 索引")]
-  Core --> PDFs[("PDF 书库<br/>只读")]
+  UI --> Core["LiteratureCore<br/>SQLite FTS5 · PDF · 引句 · 安全策略"]
+  CLI["literaturesearch-cli<br/>命令行工具 · stdio MCP 桥"] --> Core
+  Xcode["app/（Xcode 工程）<br/>Widget · iOS · watchOS · 分享扩展"] -.-> Core
+  Core --> MetaDB[("index.db<br/>书目 · 批注 · 页码表")]
+  Core --> FullDB[("fulltext.db<br/>页文本 · FTS5 · wfts")]
+  Core --> PDFs[("PDF 书库<br/>严格只读")]
 ```
 
-| 模块 | 路径 | 职责 | 规模 |
-|---|---|---|---:|
-| `LiteratureCore` | `Sources/LiteratureCore` | 一切不依赖界面的能力：存储、检索、PDF 与页码、引句、批注、同步、本机 API、安全策略 | 约 3 万行 |
-| `LiteratureSearchUI` | `Sources/LiteratureSearchUI` | 不依赖 UI 框架的展示层：引注格式化、命中路由、本地化、视图状态存储 | 约 5 千行 |
-| `LiteratureSearchApp` | `Sources/LiteratureSearchApp` | macOS 应用：窗口、视图、设置、本机 API 服务 | 约 1.8 万行 |
-| `literaturesearch-cli` | `Sources/literaturesearch-cli` | 只做显式操作的 CLI：索引、检索、PDF 检查、生成样例、MCP 服务 | 约 1.6 千行 |
-| `LiteratureTestKit` 与运行器 | `Tests/` | 合成测试套件，由 `swift test` 或 `swift run literaturesearch-tests` 运行 | 约 2.8 万行 |
-| 伴生目标 | `app/` | 生成的 Xcode 工程：Widget、iOS/iPadOS、watchOS、分享扩展 | Swift 约 3 千行 |
+| 模块 | 路径 | 职责 |
+|---|---|---|
+| `LiteratureCore` | `Sources/LiteratureCore` | 数据存储（`index.db` + `fulltext.db` 两库物理分离）、全文检索、PDF 抽取、三轨页码、引句与批注、WebDAV、本机 API、MCP 桥与安全策略 |
+| `LiteratureSearchUI` | `Sources/LiteratureSearchUI` | 不依赖 UI 框架的展示逻辑：21 种引注体例、命中路由、引文规整、`L10n`、视图状态库 |
+| `LiteratureSearchApp` | `Sources/LiteratureSearchApp` | 原生 macOS 桌面应用、PDFKit 原件高亮阅读器、环回 HTTP 宿主 |
+| `literaturesearch-cli` | `Sources/literaturesearch-cli` | 显式运维 CLI：`probe`、`index`、`search`、`pdf-info`、`genpdf`、`mcp-serve`、`rebind-renames`、`backfill-latin` |
+| `LiteratureTestKit` | `Tests/` | 128 个合成测试套件 / 1,124+ 用例（含 33 项架构与安全红线 `DesignGuard` 断言） |
+| 伴生工程 | `app/` | 由 [Scripts/generate-project.swift](Scripts/generate-project.swift) 确定性生成的 Xcode 工程（macOS、Widget、iOS、watchOS、Share 扩展） |
 
-依赖单向：App → UI → Core，CLI → Core。`LiteratureCore` 不引用应用模块、界面模块或 SwiftUI；只使用 PDFKit（仅在渲染 PDF 时用到 AppKit/UIKit）。
+> **关于内部模块命名：** 为保持与既有索引库、`literaturesearch://` 深链及测试守卫的 100% 兼容，底层 Swift target 与协议名继续沿用 `Literature*` 命名空间，面向用户的应用展示与产品品牌统一为 **PinCite（页锚）**。
 
-### `LiteratureCore` 内部
-
-| 领域 | 主要文件 |
-|---|---|
-| 索引与存储 | `IndexStore`（含迁移、队列、页码表、重绑）、`IndexingEngine`、`RefreshEngine`、`RefreshJournal`、`SQLiteDatabase`、`LibraryFileWatcher`、`SnapshotManager` |
-| 检索 | `SearchService`、`SearchEngine`、`QuerySyntax`、`SearchNormalization`、`LatinProjection`、`PinyinBookIndex`、`VersionGroup`、`SmartCollections`、`ContentCategory` |
-| PDF、页码、OCR | `PDFTextExtractor`、`PageTextSource`、`PageLabels`、`PageNumberService`、`Fingerprint`、`FrontMatter`、`AutoTOC`、`OCRIndexing`、`OcrDrivers`、`CrossValidationGate` |
-| 引句与参考文献 | `QuoteExtractor`、`QuoteLocate`、`QuoteMatch`、`QuoteGround`、`CitationPattern`、`ReferenceResolver`、`Metadata*` |
-| 批注与阅读 | `HighlightStore`、`Annotation*`、`PDFBurnExport`、`Ink*`、`MarksStore`、`FavoritesStore`、`Reading*Store` |
-| 同步与伴生端 | `WebDAV*`、`Share*`、`Shared*`、`Watch*`、`SyncModels` |
-| 集成与 AI | `LocalAPI`、`MCPBridge`、`DeepLink`、`AIAssistantService`、`AICallLedger`、`FoundationModelsTransport` |
-| 安全与设置 | `ExclusionPolicy`、`WritingPolicy`、`SecretStore`、`AppSupportPaths` |
-
-### 仓库布局
-
-```
-Sources/     Swift 包模块（见上表）
-Tests/       合成夹具、测试套件与两个测试运行器
-app/         生成的 Xcode 工程与伴生目标
-docs/        架构、数据表、页码基准、本机 API、引注
-Scripts/     工程生成、图标生成、本地化检查、隐私门禁
-.github/     CI：构建、测试、本地化检查、隐私门禁
-```
-
-延伸阅读：[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)、[docs/SCHEMA.md](docs/SCHEMA.md)、[docs/PAGE-BASIS.md](docs/PAGE-BASIS.md)、[docs/LOCAL-API.md](docs/LOCAL-API.md)。
+深入设计文档：[架构总览](docs/ARCHITECTURE.md) · [数据库 Schema](docs/SCHEMA.md) · [页码三基准](docs/PAGE-BASIS.md) · [引注场景与体例](docs/CITATION-SCENARIOS.md) · [本机 HTTP API](docs/LOCAL-API.md) · [深链协议](docs/URI-SCHEME.md) · [笔记主权三原则](docs/NOTE-SOVEREIGNTY.md)
 
 ## 设计原则
 
-| 原则 | 具体含义 |
+| 原则 | 工程落地 |
 |---|---|
-| **本地优先，书库只读** | 导入与带批注导出都写新文件。可选的 WebDAV 下载会报告同名冲突并保留本地原件。 |
-| **只以物理页为存储基准** | 命中、高亮、引句、阅读位置都按 1-based 物理页存储；印刷页与 `/PageLabels` 只是显示投影。 |
-| **不猜页码** | 没有文档声明或页码表时，界面显示“未知”并回退物理页。 |
-| **失败要说出来** | 排除策略出错就停止索引；指纹不匹配就拒绝旧引用；零命中会说明原因。 |
-| **结果必须回得到原件** | 每条命中携带书的指纹与 UTF-16 区间，每次跳转前都重新核对。 |
-| **网络与 AI 默认关闭** | 本机只读 API 只绑定环回地址。在线补全会发送标识符或标题和作者，缺少标题时使用整理后的文件名。AI 外发前逐次确认。可选的 WebDAV 索引上传会发送完整数据库快照，其中可能包含本机文件路径、提取的全文和笔记。 |
+| **原件只读，本地优先** | 绝不改写用户原 PDF；带批注导出恒写新副本；WebDAV 下载遇到同名文件只报错跳过、绝不覆盖本地原件。 |
+| **物理页是唯一存储基准** | 检索命中、高亮、引句、阅读进度一律锚定 1-based 物理页；印刷页与 `/PageLabels` 仅为展示投影。 |
+| **失败显式暴露（Fail-Closed）** | 排除规则语法错立即阻断索引；SHA-256 指纹不匹配拒绝打开旧引用；未知页码明确显示未知；零命中解释原因。 |
+| **零警告工程纪律** | 全部生产模块与 1,124+ 合成测试用例均在 `-Xswiftc -warnings-as-errors` 下以 0 告警通过构建。 |
 
 ## 构建与测试
 
 ```bash
-swift build                          # 先构建：部分测试会调用 CLI 二进制
-swift test                           # swift-testing 桥
-swift run literaturesearch-tests     # 同一批用例，可执行运行器
-swift run literaturesearch-cli --help
-python3 Scripts/privacy-gate.py      # 仓库隐私检查（CI 中也会运行）
+# 运行完整本地预检门禁（隐私门禁、工程生成一致性、L10n 检查、零警告编译、1,124+ 全量测试）
+Scripts/preflight.sh
+
+# 或分步执行：
+swift build --build-tests -Xswiftc -warnings-as-errors
+swift test
+swift run literaturesearch-tests
+python3 -I Scripts/privacy-gate.py --self-test
+swift Scripts/generate-project.swift
+Scripts/package-release.sh 0.3.0
 ```
 
-测试套件使用 `swift-testing`，需要 Xcode 16 或更新版本。应用启动时探测 SQLite FTS5，缺少 FTS5 时使用 LIKE 检索。构建应用包、小组件和伴生端需要使用 Xcode 工程，可运行 `swift Scripts/generate-project.swift` 重新生成。
+## 当前状态与限制
 
-| 指标 | 数值 | 来源 |
-|---|---:|---|
-| 合成测试注册表 | `Tests/LiteratureCoreTests/AllSuites.swift` | 运行 `swift test` |
-| 引注体例 | 21 | `Sources/LiteratureSearchUI/CitationFormatter.swift` |
-
-## 状态与限制
-
-| 组件 | 状态 |
-|---|---|
-| macOS 应用、CLI、核心库 | 可用；由合成测试套件覆盖 |
-| Widget、iOS/iPadOS、watchOS、分享扩展 | 可在生成的 Xcode 工程中构建（模拟器）；尚未真机验收；共享数据需签名应用与 App Group |
-
-- 界面目前只有简体中文。
-- 印刷页码需要文档声明或页码表，不从 OCR 或版面推断。
-- 改名后的副本不能仅凭路径识别，需要排除或重绑记录。
-- 真机签名需要在 Xcode 中设置你的 `DEVELOPMENT_TEAM`。在[工程生成脚本](Scripts/generate-project.swift)中修改各目标的 bundle ID，同步更新 [watchOS Info.plist](app/Support/LiteratureSearchWatch-Info.plist) 中的 iOS 伴生 ID，然后重新生成工程。各目标的 entitlements 和 `SharedHistoryStore`、`ShareReceive`、`WatchCompanionCache`、`WatchSummaryCache` 中的共享容器要使用同一个 App Group ID。
-- App Group 测试只在签名宿主下（`LIT_APPGROUP_AVAILABLE`）走容器分支，否则校验文档化的回退路径。
-- 仓库只包含合成夹具——没有真实书库、索引或凭据。
+- **macOS 应用、CLI 与核心库**：功能完备，全量合成测试套件验证通过。
+- **桌面界面语言**：当前桌面 UI 文案为简体中文，计划在 `v0.4.0` 推出应用内英/中双语实时切换；文档、README 与发布引导已全面双语化。
+- **伴生端（iOS / watchOS / Widget / 分享扩展）**：可在 CI 环境下完成全平台模拟器编译；真机安装与 App Group 数据共享需在 [Scripts/generate-project.swift](Scripts/generate-project.swift) 与 entitlements 中填入自己的 Apple `DEVELOPMENT_TEAM`。
+- **临时签名（ad-hoc）**：Release DMG 为无公证临时签名包，首次启动需按上方说明解除隔离属性。
 
 ## 路线图
 
-- 降低完整检索命令的延迟，尤其是打开大型索引的开销。
-- 在默认启用前，校准双引擎 OCR 交叉验证阈值。
-- 加强 iOS/iPadOS 伴生端与跨版次页码对齐。
-- 在元数据足够时，为期刊论文、学位论文、判决与法规增加专门模板。
-- 改进改名或重组书库后的导入与重绑流程。
+- **v0.4.0 — 全双语 UI 与状态解耦**：补齐 `L10n` 实时英/中切换，将 `AppState` 拆分为 `Search` / `Reader` / `Library` / `AI` 四个独立协调器，并补齐双语实机高清截图。
+- **双引擎 OCR 校准**：完成 MinerU 与 Docling 交叉验证阈值校准后开启默认比对。
+- **扩展法学与学术体例**：针对期刊论文、学位论文、裁判文书与法律法规增加专用模板。
+- **伴生端真机联调**：完善 iOS/iPadOS 与 watchOS 跨设备只读副本协同体验。
 
 ## 贡献与许可
 
-约定、测试夹具与隐私门禁见 [CONTRIBUTING.md](CONTRIBUTING.md)。以 [MIT 许可](LICENSE) 发布。
+贡献规范、行为准则与安全报告请见 [CONTRIBUTING.md](CONTRIBUTING.md)、[CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) 与 [SECURITY.md](SECURITY.md)。
+本项目基于 [MIT 许可](LICENSE) 开源。

@@ -8,7 +8,7 @@ import Foundation
 /// 注：本文件禁 import LiteratureCore——iOS 单模块直编形态下 UI 与 Core 源
 /// 并入同一 target（iOSCompileGate 基准），同模块互 import 即挂 iOS 门。
 public enum L10n {
-    public static let appTitle = "文献检索"
+    public static let appTitle = "PinCite"
     public static let chooseFolder = "选择文献目录…"
     public static let startIndexing = "开始索引"
     public static let cancelIndexing = "取消索引"
@@ -66,7 +66,7 @@ public enum L10n {
     // MARK: WebDAV 同步（1a：远端文献下载进本库；凭据只进本机钥匙串）
 
     public static let webdavSection = "WebDAV 同步（远端文献下载进本库）"
-    public static let webdavPanelNote = "从 WebDAV把远端文献拉到本地。密码仅存本机钥匙串，不随快照同步、不落盘；点击任一按钮即保存当前配置。"
+    public static let webdavPanelNote = "从 WebDAV 把远端文献拉到本地。密码仅存本机钥匙串，不随快照同步、不落盘；点击任一按钮即保存当前配置。"
     public static let webdavServerURL = "服务器 URL（如 https://dav.example.com/webdav）"
     public static let webdavUsername = "用户名"
     public static let webdavPassword = "密码（仅存本机钥匙串）"
@@ -95,14 +95,14 @@ public enum L10n {
         "下载落点：Application Support/LiteratureSearch/\(name)（新文件进检索需对该目录再跑一次索引）"
     }
 
-    // MARK: WebDAV 索引上传（方案一：Mac 上传索引快照；iPhone 只读副本属）
+    // MARK: WebDAV 索引上传（Mac 上传索引快照，供 iOS 只读副本拉取）
 
     public static let webdavUploadGroupTitle = "索引上传"
     public static let webdavUploadIndex = "上传索引到 WebDAV"
     public static let webdavAutoUploadToggle = "索引重建后自动上传"
     public static let webdavCleanupToggle = "上传后清理未引用旧快照（保留最近 2 份；单次至多删 8 个）"
     public static let webdavUploadInProgress = "正在生成索引快照并上传…（大库首次生成需数分钟）"
-    /// 安全约束：sha256 只称防损坏/防传输错误；按。
+    /// 安全约束：sha256 仅表示完整性校验（防损坏与传输错误）。
     public static let webdavUploadPrivacyNote = "上传会发送完整数据库快照，其中可能包含本机文件路径、提取的全文和笔记。WebDAV 服务商可读取快照及清单，HTTPS 只保护传输过程。"
     public static let webdavUploadAuditTitle = "最近操作（至多保留 5 条）"
     public static let webdavUploadAuditEmpty = "尚无上传/删除记录"
@@ -410,7 +410,7 @@ public enum L10n {
     // MARK: 视觉打磨（纯字符串）
 
     public static let settingsGroupAbout = "关于"
-    public static let aboutTagline = "书房式文献检索工具"
+    public static let aboutTagline = "PinCite · 本地优先的书房式文献精查工具"
 
     // MARK: 每日一句（widget slice；纯字符串；Widget 侧文案随
     // RecentSearches 先例内联在 app/Widget，widget target 不链接 UI 库）

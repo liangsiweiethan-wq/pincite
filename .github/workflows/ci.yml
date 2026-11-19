@@ -16,7 +16,7 @@ concurrency:
 jobs:
   build-and-test:
     runs-on: macos-15
-    timeout-minutes: 40
+    timeout-minutes: 45
     env:
       # GitHub runners are slower than a local Mac; widen timing gates.
       LIT_PERF_RELAXED: "1"
@@ -25,32 +25,61 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Toolchain
-        run: swift --version
+        run: |
+          swift --version
+          xcodebuild -version
 
-      - name: Privacy gate
-        run: python3 -I Scripts/privacy-gate.py
+      - name: Privacy gate & self-test
+        run: |
+          python3 -I Scripts/privacy-gate.py
+          python3 -I Scripts/privacy-gate.py --self-test
 
-      - name: Privacy gate self-test
-        run: python3 -I Scripts/privacy-gate.py --self-test
-
-      - name: Generated project is clean
+      - name: Generated Xcode project is clean
         run: |
           swift Scripts/generate-project.swift
           git diff --exit-code -- app/
           test -z "$(git ls-files --others --exclude-standard -- app/)"
 
-      - name: Build
-        run: swift build
-
-      - name: Test
-        run: swift test
-
       - name: L10n drift check
         run: Scripts/l10n-drift-check.sh
 
-      - name: Build macOS app
+      - name: Build all targets (warnings as errors)
+        run: swift build --build-tests -Xswiftc -warnings-as-errors
+
+      - name: Run synthetic test suite
+        run: swift test
+
+      - name: Offline CLI end-to-end smoke
+        run: |
+          TMP_SMOKE=$(mktemp -d)
+          trap 'rm -rf "$TMP_SMOKE"' EXIT
+          mkdir -p "$TMP_SMOKE/lib"
+          swift run literaturesearch-cli genpdf --out "$TMP_SMOKE/lib/smoke.pdf" \
+            --page "Page one introductory text" \
+            --page "Page two pinpoint citation anchor" \
+            --page "Page three closing summary"
+          swift run literaturesearch-cli index "$TMP_SMOKE/lib" --db "$TMP_SMOKE/index.db"
+          OUT=$(swift run literaturesearch-cli search "pinpoint" --db "$TMP_SMOKE/index.db")
+          echo "$OUT"
+          echo "$OUT" | grep -q "total matching pages: 1"
+
+      - name: Build macOS app (Release, unsigned)
         run: >
           xcodebuild -project app/LiteratureSearch.xcodeproj -scheme LiteratureSearch
           -configuration Release -destination 'generic/platform=macOS'
-          -derivedDataPath "$RUNNER_TEMP/literature-macos"
+          -derivedDataPath "$RUNNER_TEMP/pincite-macos"
+          CODE_SIGNING_ALLOWED=NO build
+
+      - name: Build iOS companion (Simulator, unsigned)
+        run: >
+          xcodebuild -project app/LiteratureSearch.xcodeproj -scheme LiteratureSearchiOS
+          -destination 'generic/platform=iOS Simulator'
+          -derivedDataPath "$RUNNER_TEMP/pincite-ios"
+          CODE_SIGNING_ALLOWED=NO build
+
+      - name: Build watchOS companion (Simulator, unsigned)
+        run: >
+          xcodebuild -project app/LiteratureSearch.xcodeproj -scheme LiteratureSearchWatch
+          -destination 'generic/platform=watchOS Simulator'
+          -derivedDataPath "$RUNNER_TEMP/pincite-watch"
           CODE_SIGNING_ALLOWED=NO build

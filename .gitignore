@@ -28,7 +28,8 @@ exports/
 *.cer
 *.mobileprovision
 
-# Quick-start sample output
+# Quick-start sample output and packaged DMGs
 /sample-library/
+*.dmg
 # Private privacy-gate denylist (never commit)
 /.privacy-denylist.json
