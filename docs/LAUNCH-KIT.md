@@ -87,79 +87,91 @@
 
 ---
 
-## 3. 小红书（图文笔记 · 中文爆款版 + 留学党双语版）
+## 3. 小红书（图文笔记 · 亲民带表情包版 + 留学党双语版）
 
 ### A. 中文主帖（适配科研 / 硕博 / 法学生 / 人文社科）
 
-**备选标题（三选一）：**
-1. `写论文找死人的原页出处？我开源了一个本地 Mac 精查神器📌`
-2. `求求别再用 AI 编页码了！这个零联网开源软件帮我守住论文引文最后一道防线`
-3. `本地上千篇 PDF 秒定位原页+自动算引注，还绝不改写原文件｜开源免费`
+**备选标题（均严格 ≤20 字，直接复制不会截断）：**
+1. `写论文查页码救星！1秒钉回PDF原页📌`
+2. `别让AI编页码了！开源离线PDF神器✨`
+3. `上千篇PDF秒定位原页！零联网还免费💻`
+4. `救命！这Mac开源工具专治论文找页码😭`
 
-**配图 5 张分镜建议（直接用苹果截图/Figma 做卡片）：**
-1. **封面图**：米白纸感底色 + 大字「写论文核对引文页码？1 秒钉回 PDF 原页」+ 副标题「免费开源 · 纯离线 · 不改原 PDF · 防 AI 编页码」。
-2. **图 2（痛点对比卡）**：左栏「常见踩坑（预览乱跳、AI 编造页码、PDF 物理页 ≠ 书上页码）」vs 右栏「PinCite（指纹验真回跳、三轨页码绝不瞎猜）」。
-3. **图 3（搜索 + 精确高亮回跳界面 / QuickStart 示例）**：框出「命中原文 + 物理页/印刷页分开标 + 点击直接高亮原句」。
-4. **图 4（21 种引注 + 笔记主权）**：展示「法学引注 / GB/T 7714 / Chicago / APA / Bluebook 一键生成，高亮全存独立库不污染原 PDF」。
-5. **图 5（3 步安装指南）**：展示 GitHub Releases 下载 -> 拖入应用程序 -> 终端一行命令解决无签名提示。
+**5 张已生成好的 3:4 高清配图（2160×2880，存于本机 `_releases/pincite-xhs-cards/`）：**
+1. `01-cover.png` — 封面大字卡（「写论文核对页码找到怀疑人生？1 秒钉回 PDF 原页！」+ 搜索命中卡片）。
+2. `02-pain-vs-pincite.png` — 痛点避坑对比卡（预览搜漏 / 物理页≠印刷页 / AI 编页码 / PDF 被改脏 vs PinCite 解法）。
+3. `03-features-preview.png` — 核心功能全景（中英+拼音找书、双库原件只读、CSV 页码表、MCP 接 AI + 21 种引注展示）。
+4. `04-who-needs-it.png` — 适用人群清单 + `0 依赖 / 21 种引注 / 1,130 测试全绿 / MIT 免费` 背书条。
+5. `05-install-guide.png` — 30 秒保姆级安装步骤（含复制一行命令绕开无签名提示 + 3 页测试样书彩蛋）。
 
-**小红书正文：**
+**小红书正文（无 Markdown 星号，手机端排版直接可发）：**
 ```text
-写论文、做法条检索或文献综述的时候，最崩溃的瞬间永远不是“找不到资料”，而是👇
-正文写完了，回头去几百上千份 PDF 里**核对逐字原文和准确页码**！
+写论文、查法条或做文献综述的时候，最崩溃的瞬间永远不是“找不到资料”，而是👇
+正文明明快写完了，回头去几百上千份 PDF 里核对「逐字原句」和「准确页码」！！😭
 
-❌ Mac 自带预览搜中文经常漏字，点过去不知道停在具体哪一句；
-❌ 扫描书的 PDF 第 15 页其实是正文第 1 页，工具不区分的话引注必错；
-❌ 用 AI 工具问出处，它经常一本正经给你编一个根本不存在的页码；
-❌ 很多私有资料根本不想上传到云端服务器。
+踩过这些坑的举手🙋：
+❌ Mac 自带预览搜中文经常漏字，点过去不知道停在哪一行
+❌ 扫描书 PDF 第 15 页其实是正文第 1 页，没区分的话页码全标错
+❌ 问 AI 这句话出自第几页，它经常一本正经给你编一个假页码🤯
+❌ 好多私有电子书、内部报告根本不想上传到云端服务器
 
-于是我写并开源了 **PinCite（页锚）**——专门在 Mac 本地做「精准页码核对」的工具，MIT 协议完全免费，零云端、零追踪：
+于是我自写并开源了「PinCite（页锚）」✨
+一款专为 Mac 打造的纯本地文献精查小工具，MIT 开源完全免费，不联网、不收费、不追踪：
 
-1️⃣ **点结果直接钉回 PDF 原页高亮区**
-中英文都能按页精查，还支持按书名拼音搜索！回跳前先核对文件指纹，就算书库文件被移动或修改也不会悄悄跳错页。
+1️⃣ 搜到句子，1 秒钉回 PDF 原页高亮区 📌
+中英文混合都能按页精查，忘了书名准确字？输首字母拼音也能直接找书！点击命中结果前还会先验一遍文件指纹，再也不用怕改名或换版本后默默跳错页～
 
-2️⃣ **物理页 / PDF 页标 / 印刷页严格分开，绝不瞎猜**
-PDF 第 14 页对应印刷第 1 页？没依据就不乱标，支持导入自己的页码对照表，科研引用最怕的页码错位彻底解决。
+2️⃣ 物理页 / PDF 页标 / 印刷页严格分开，绝不瞎猜 📏
+PDF 第 16 页对应书上第 2 页？没把握绝不替你编页码！还能导入简单的页码对照表，科研引用最怕的页码错位彻底安心了✅
 
-3️⃣ **绝不弄脏你的原版 PDF**
-所有高亮、下划线、页面笔记都存在软件独立数据库里，原 PDF 全程只读不动；导出批注只另存新副本。
+3️⃣ 永远不弄脏你的原版 PDF 🛡️
+所有高亮、下划线、页面笔记都存在软件自己的独立数据库里，原版 PDF 全程只读不动！导出批注也永远另存新副本，再也不用担心手滑覆盖原书～
 
-4️⃣ **内置 21 种中西文引注格式**
-法学期刊体例、GB/T 7714-2015、APA 7、MLA 9、Chicago 18、Bluebook 等原生自带，还能通过 MCP 接给本机 AI 工具，让 AI 只引查得到的真页码。
+4️⃣ 原生自带 21 种中西文引注 + 防 AI 瞎编插件 🎓
+中文法学期刊、GB/T 7714-2015、APA 7、MLA 9、Chicago 18、Bluebook 都能一键出格式！还能通过本地 MCP 接给你电脑里的 AI 工具，让 AI 写综述时只引用查得到的真页码🤖
 
-📦 获取方式（完全免费开源）：
-GitHub 搜 `liangsiweiethan-wq/pincite` 进 Releases 下载 `PinCite-0.3.0-macOS-adhoc.dmg` 即可～
+📦 怎么免费下载？（只要 1 分钟）
+GitHub 搜：liangsiweiethan-wq/pincite
+点进右边的 Releases 下载最新 DMG 拖进「应用程序」就好啦～
 
-⚠️ 新手安装小贴士（非常重要！）：
-因为还没办苹果付费公证，软件拖进“应用程序”后第一次打开前，打开系统“终端”，复制运行这一行就行：
-`xattr -cr /Applications/LiteratureSearch.app`
-（安装包里自带了一本 3 页测试样书 `PinCite-QuickStart.pdf`，先别急着导大书库，拿它 10 秒就能试出效果！）
+⚠️ 苹果电脑小白必看提示（超简单！）：
+因为我是个人开源作者，还没买苹果每年付费公证，拖进「应用程序」后首次双击会被系统拦一下。
+只要打开 Mac 自带的「终端」，复制贴入这一行回车就搞定（只需这一次）：
+xattr -cr /Applications/LiteratureSearch.app
 
-有 Mac 做科研或写长文的姐妹兄弟自取，欢迎评论区提需求！✨
+🎁 贴心小彩蛋：
+安装包里自带了一本 3 页测试样书 PinCite-QuickStart.pdf！先别急着导几千份大书库，拿它搜一下 pinpoint 或 页码三分离，10 秒就能看到丝滑回跳效果✨
+
+觉得有用的科研搭子、法学生和论文党欢迎先⭐收藏防走丢，需要 Windows 版、英文界面或者新引注格式的也欢迎评论区蹲蹲，下一版安排上！💬
 
 #Mac效率神器 #科研工具 #写论文必备 #学术写作 #文献管理 #法学生 #人文社科 #开源软件 #读研日常 #PinCite
 ```
 
+**推荐复制标签（末尾直接带入）：**
+`#Mac效率神器 #科研工具 #写论文必备 #学术写作 #文献管理 #法学生 #人文社科 #开源软件 #读研日常 #PinCite`
+
 ### B. 小红书 · 海外硕博 / 留学生中英双语短版
 
-**标题：**
-`写英文 Paper 核对 Exact Page 救星｜开源零联网 Mac 本地 PDF 精查 PinCite`
+**标题（19 字，不超长）：**
+`写英文Paper核对页码神器✨开源免费`
 
-**正文：**
+**正文（无 Markdown 星号，可直接发）：**
 ```text
-写英文 Essay / Thesis / Legal Memo 最怕什么？
-Citation format 扣分事小，**quote 和 page number 对不上直接被查成学术不端嫌疑**才致命😵‍💫
+写英文 Essay / Thesis / Legal Memo 最怕什么？😱
+Citation 格式扣分都是小事，Quote 和 Page Number 对不上直接被质疑学术不端才要命！
 
-开源自用 Mac 工具 **PinCite（页锚）**，专门治“本地海量 PDF 查 verbatim quote + pinpoint page”：
+安利一个我开源的纯离线 Mac 小工具「PinCite（页锚）」📌 专治本地上千篇 PDF 核对 verbatim quote + pinpoint page：
 
-✅ **UTF-16 exact span highlight**：搜到句子点一下，直接定位到原 PDF 那一页、那一行。
-✅ **Strict 3-Track Page Truth**：Physical Page vs. PDF `/PageLabels` vs. Printed Book Page 严格分离，no fabricated page numbers。
-✅ **SHA-256 Fail-Closed**：防止重命名/覆盖 PDF 后 silently jump 到错页。
-✅ **21 Citation Formats Built-in**：Bluebook、OSCOLA、Chicago 18、APA 7、MLA 9、GB/T 7714 一键出，还自带 stdio MCP 给本机 AI Agent 提供可溯源页码。
-✅ **100% Local & Zero Dependencies**：原生 Swift 开发，零三方包、零上传。
+✅ UTF-16 exact span highlight：搜到句子点一下，直接跳回原 PDF 那一页并高亮精确范围 🔍
+✅ Strict 3-Track Page Truth：Physical Page / PDF PageLabels / Printed Page 严格分离，no fabricated page numbers 🚫
+✅ SHA-256 Fail-Closed：文件哪怕改过一个字也会先提醒，绝不 silently jump 到错页 🛡️
+✅ 21 Citation Styles Built-in：Bluebook、OSCOLA、Chicago 18、APA 7、MLA 9、GB/T 7714 一键出，还自带本地 MCP 给 AI Agent 供真页码 🎓
+✅ 100% Offline & MIT Free：纯本地原生开发，零联网、零广告、完全开源免费 💯
 
-🔗 GitHub（MIT 开源免费）：`liangsiweiethan-wq/pincite` -> Releases 下载 macOS DMG。
-💡 初次打开先在 Terminal 跑一句 `xattr -cr /Applications/LiteratureSearch.app` 解除未公证限制即可～
+🔗 GitHub 搜索：liangsiweiethan-wq/pincite -> Releases 下载 macOS DMG
+💡 初次打开先在 Terminal 跑一句：
+xattr -cr /Applications/LiteratureSearch.app
+就能绕过未公证提示直接用啦！安装包里自带 QuickStart 样书，10 秒可试✨
 
 #留学生日常 #Essay神器 #论文写作 #Mac软件推荐 #LawSchool #PhDLife #Zotero好搭档 #开源工具 #PinCite
 ```
